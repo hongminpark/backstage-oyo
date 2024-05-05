@@ -15,12 +15,15 @@
         "isolatedModules": true,
         "noEmit": true,
         "jsx": "react-jsx",
-
         "strict": false,
         "noImplicitAny": false,
         "noImplicitThis": false,
         "alwaysStrict": false,
-        "noEmitOnError": false
+        "noEmitOnError": false,
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["./*"]
+        }
     },
     "include": ["src"]
 }

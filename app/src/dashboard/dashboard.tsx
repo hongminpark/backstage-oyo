@@ -1,22 +1,4 @@
-import {
-    AspectRatio,
-    Box,
-    Button,
-    Checkbox,
-    Image,
-    NumberInput,
-    NumberInputField,
-    Progress,
-    Select,
-    Slider,
-    SliderFilledTrack,
-    SliderThumb,
-    SliderTrack,
-    Stack,
-    Text,
-    Textarea,
-    useToast,
-} from "@chakra-ui/react";
+import { AspectRatio, Box, useToast } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import {
     Subscribe,
@@ -25,9 +7,68 @@ import {
     WS_MESSAGE_TYPE_PROGRESS,
 } from "../comfy/api";
 import { useComfy } from "../comfy/ComfyProvider";
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "../components/ui/accordion";
+import {
+    ResizableHandle,
+    ResizablePanel,
+    ResizablePanelGroup,
+} from "../components/ui/resizable";
 
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
+const baseImages = [
+    {
+        src: "/demo/base_w_00.png",
+        desc: "Female, portrait, studio shot, white background, short straight blonde hair, black tank top",
+    },
+    {
+        src: "/demo/base_w_01.png",
+        desc: "Female, portrait, studio shot, white background, curly blonde hair, black tank top",
+    },
+    {
+        src: "/demo/base_w_02.png",
+        desc: "Female, portrait, studio shot, white background, braided hair, black tank top",
+    },
+    {
+        src: "/demo/base_w_03.png",
+        desc: "Female, portrait, studio shot, white background, black curly hair, black tank top",
+    },
+    {
+        src: "/demo/base_m_01.png",
+        desc: "Male, portrait, studio shot, white background, curly hair",
+    },
+    {
+        src: "/demo/base_m_02.png",
+        desc: "Male, portrait, soft lighting, studio shot, white background, tousled hair",
+    },
+    {
+        src: "/demo/base_m_03.png",
+        desc: "portrait, studio shot, white background, dreadlocks hair",
+    },
+];
+const faceImages = [
+    {
+        src: "/demo/face_main01.png",
+        desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
+    },
+    {
+        src: "/demo/face_main02.png",
+        desc: "straight black hair, minimalist makeup, serene expression, soft features, even skin tone",
+    },
+    {
+        src: "/demo/face_main03.png",
+        desc: "Caucasian, blonde straight hair, light makeup, calm expression, clear skin, subtle lips",
+    },
+    {
+        src: "/demo/face_main04.png",
+        desc: "Caucasian, blonde short hair, minimal makeup, neutral expression, clear skin, defined cheekbones",
+    },
+];
 
 const Dashboard = () => {
     const toast = useToast();
@@ -57,6 +98,28 @@ const Dashboard = () => {
 
     const [inProgress, setInProgress] = useState(false);
     const [progress, setProgress] = useState(0);
+
+    const [selectedBaseImage, setSelectedBaseImage] = useState();
+    const [selectedFaceImage, setSelectedFaceImage] = useState();
+    const [prompt, setPrompt] = useState("Initial Text");
+
+    const toggleBaseImageSelection = (img) => {
+        if (selectedBaseImage === img) {
+            setSelectedBaseImage(null);
+            setPrompt(null);
+        } else {
+            setSelectedBaseImage(img);
+            setPrompt(img.desc);
+        }
+    };
+
+    const toggleFaceImageSelection = (src) => {
+        if (selectedFaceImage === src) {
+            setSelectedFaceImage(null);
+        } else {
+            setSelectedFaceImage(src);
+        }
+    };
 
     useEffect(() => {
         updateCheckpoint();
@@ -168,7 +231,212 @@ const Dashboard = () => {
 
     return (
         <div className="w-screen h-screen flex overflow-hidden">
-            <Stack direction="row" spacing={2} style={{ width: "100%" }}>
+            <ResizablePanelGroup direction="horizontal">
+                <ResizablePanel>
+                    {/* TODO - add result image */}
+                    <div className="flex items-center justify-center p-6">
+                        <Box
+                            flex="2"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            h="100vh"
+                        >
+                            {images?.length > 0 &&
+                                images.map((image, index) => (
+                                    <AspectRatio
+                                        key={index}
+                                        minWidth="80%"
+                                        maxW="80%"
+                                        ratio={1}
+                                        border="1px solid black"
+                                        p="4"
+                                    >
+                                        <>
+                                            {image && (
+                                                <img
+                                                    src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
+                                                    alt=""
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            )}
+                                        </>
+                                    </AspectRatio>
+                                ))}
+                        </Box>
+                    </div>
+                </ResizablePanel>
+                <ResizableHandle />
+                <ResizablePanel>
+                    <ResizablePanelGroup direction="vertical">
+                        <ResizablePanel defaultSize={70}>
+                            <div className="flex h-full pt-16 overflow-y-auto">
+                                <Accordion
+                                    type="single"
+                                    collapsible
+                                    className="w-full"
+                                >
+                                    <AccordionItem value="item-1 ">
+                                        <AccordionTrigger className="text-2xs px-4 py-2">
+                                            <div>1. Base Style</div>
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                            <div className="h-full px-4">
+                                                <div className="text-2xs">
+                                                    Select base style image
+                                                </div>
+                                                <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide">
+                                                    {baseImages.map(
+                                                        (image, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className={`flex-none max-w-[256px] w-2/3 lg:w-2/5 aspect-[3/4] relative hover:cursor-pointer overflow-hidden ${
+                                                                    selectedBaseImage ===
+                                                                    image
+                                                                        ? "border border-black"
+                                                                        : "border border-transparent"
+                                                                }`}
+                                                                onClick={() =>
+                                                                    toggleBaseImageSelection(
+                                                                        image
+                                                                    )
+                                                                }
+                                                            >
+                                                                <img
+                                                                    src={`${process.env.PUBLIC_URL}${image.src}`}
+                                                                    alt={`Main Model ${
+                                                                        index +
+                                                                        1
+                                                                    }`}
+                                                                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 ease-in-out"
+                                                                />
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                    <AccordionItem value="item-2">
+                                        <AccordionTrigger className="text-2xs px-4 py-2">
+                                            2. Select Face
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                            <div className="h-full px-4">
+                                                <div className="text-2xs">
+                                                    Select face
+                                                </div>
+                                                <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide">
+                                                    {faceImages.map(
+                                                        (image, index) => (
+                                                            <div
+                                                                key={index}
+                                                                className={`flex-none max-w-[256px] w-2/3 lg:w-2/5 aspect-[3/4] relative hover:cursor-pointer overflow-hidden ${
+                                                                    selectedFaceImage ===
+                                                                    image
+                                                                        ? "border border-black"
+                                                                        : "border border-transparent"
+                                                                }`}
+                                                                onClick={() =>
+                                                                    toggleFaceImageSelection(
+                                                                        image
+                                                                    )
+                                                                }
+                                                            >
+                                                                <img
+                                                                    src={`${process.env.PUBLIC_URL}${image.src}`}
+                                                                    alt={`Face Model ${
+                                                                        index +
+                                                                        1
+                                                                    }`}
+                                                                    className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 ease-in-out"
+                                                                />
+                                                            </div>
+                                                        )
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                    <AccordionItem value="item-3">
+                                        <AccordionTrigger className="text-2xs px-4 py-2">
+                                            3. Enter description
+                                        </AccordionTrigger>
+                                        <AccordionContent>
+                                            <div className="h-full px-4">
+                                                <div className="text-2xs">
+                                                    Enter prompt
+                                                </div>
+                                                <input
+                                                    type="text"
+                                                    value={prompt}
+                                                    onChange={(e) =>
+                                                        setPrompt(
+                                                            e.target.value
+                                                        )
+                                                    }
+                                                    className="w-full px-2 py-1 border border-black border-opacity-25 focus:outline-none focus:border-black text-2xs"
+                                                    placeholder="Type prompt"
+                                                />
+                                            </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
+                            </div>
+                        </ResizablePanel>
+                        <ResizableHandle />
+                        <ResizablePanel defaultSize={30}>
+                            <div className="flex flex-col h-full p-4 gap-2">
+                                <button
+                                    className="relative border border-black px-2 py-1 w-max hover:bg-white hover:text-black bg-black text-white text-2xs flex items-center justify-center"
+                                    onClick={generate}
+                                >
+                                    Generate
+                                </button>
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex flex-row gap-1 text-2xs">
+                                        {selectedBaseImage && (
+                                            <div className="flex-none max-w-[128px] w-1/2 md:w-2/5">
+                                                <div className="font-medium">
+                                                    Base
+                                                </div>
+                                                <img
+                                                    //@ts-ignore
+                                                    src={`${process.env.PUBLIC_URL}${selectedBaseImage.src}`}
+                                                    className="w-full aspect-[3/4] object-cover"
+                                                />
+                                            </div>
+                                        )}
+                                        {selectedFaceImage && (
+                                            <div className="flex-none max-w-[128px] w-1/2 md:w-2/5">
+                                                <div className="font-medium">
+                                                    Face
+                                                </div>
+                                                <img
+                                                    //@ts-ignore
+                                                    src={`${process.env.PUBLIC_URL}${selectedFaceImage.src}`}
+                                                    className="w-full aspect-[3/4] object-cover"
+                                                />
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <div className="font-medium text-2xs">
+                                            Prompt
+                                        </div>
+                                        <div className="text-2xs leading-tight">
+                                            {selectedBaseImage &&
+                                                //@ts-ignore
+                                                selectedBaseImage.desc}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ResizablePanel>
+                    </ResizablePanelGroup>
+                </ResizablePanel>
+            </ResizablePanelGroup>
+            {/* <Stack direction="row" spacing={2} style={{ width: "100%" }}>
                 <Box
                     flex="1"
                     style={{ paddingLeft: "20px", paddingRight: "20px" }}
@@ -282,7 +550,7 @@ const Dashboard = () => {
                             </AspectRatio>
                         ))}
                 </Box>
-            </Stack>
+            </Stack> */}
         </div>
     );
 };
