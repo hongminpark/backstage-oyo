@@ -1,24 +1,24 @@
-const { createProxyMiddleware } = require('http-proxy-middleware');
+const { createProxyMiddleware } = require("http-proxy-middleware");
 
-module.exports = function(app) {
+module.exports = function (app) {
     app.use(
-        '/object_info/',
+        "/object_info/",
         createProxyMiddleware({
-            target: 'http://localhost:8188',
+            target: "http://0.0.0.0:8188",
             changeOrigin: true,
         })
     );
     app.use(
-        '/prompt/',
+        "/prompt/",
         createProxyMiddleware({
-            target: 'http://localhost:8188',
+            target: "http://0.0.0.0:8188",
             changeOrigin: true,
         })
     );
     app.use(
-        '/view',
+        "/view",
         createProxyMiddleware({
-            target: 'http://localhost:8188',
+            target: "http://0.0.0.0:8188",
             changeOrigin: true,
         })
     );

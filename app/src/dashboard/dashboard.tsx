@@ -7,7 +7,6 @@ import {
     NumberInput,
     NumberInputField,
     Progress,
-    Select,
     Slider,
     SliderFilledTrack,
     SliderThumb,
@@ -26,10 +25,10 @@ import {
 } from "../comfy/api";
 import { useComfy } from "../comfy/ComfyProvider";
 import { base } from "./image";
-import ToggleColorMode from "./ToggleColorMode";
 
 const Dashboard = () => {
     const toast = useToast();
+    const IMAGE_SIZE = 1024;
     const { queuePrompt, fetchCheckpoints } = useComfy();
     const [rand, setRand] = useState<number>(Math.random);
     const [image, setImage] = useState<string | null>(null);
@@ -44,8 +43,8 @@ const Dashboard = () => {
     );
     const [randomSeed, setRandomSeed] = useState(true);
 
-    const [height, setHeight] = useState(512);
-    const [width, setWidth] = useState(512);
+    const [height, setHeight] = useState(IMAGE_SIZE);
+    const [width, setWidth] = useState(IMAGE_SIZE);
     const [positivePrompt, setPositivePrompt] = useState("");
     const [negetivePrompt, setNegetivePrompt] = useState("");
 
@@ -95,8 +94,8 @@ const Dashboard = () => {
             steps: steps,
             seed: seed,
             checkpoint: selectedCheckpoint,
-            height: height,
-            width: width,
+            height: IMAGE_SIZE,
+            width: IMAGE_SIZE,
             positivePrompt: positivePrompt,
             negativePrompt: negetivePrompt,
         }).then((res) => {
@@ -159,7 +158,7 @@ const Dashboard = () => {
     };
 
     return (
-        <div>
+        <div className="text-xs text-black">
             <Stack direction="row" spacing={2} style={{ width: "100%" }}>
                 <Box
                     flex="1"
@@ -170,8 +169,7 @@ const Dashboard = () => {
                         spacing={6}
                         style={{ marginTop: "5vh" }}
                     >
-                        <ToggleColorMode />
-                        <Select
+                        {/* <Select
                             placeholder="Select Checkpoint"
                             value={selectedCheckpoint}
                             onChange={handleSelectChange}
@@ -182,7 +180,7 @@ const Dashboard = () => {
                                         {option}
                                     </option>
                                 ))}
-                        </Select>
+                        </Select> */}
                         <Text>CFG ({cfg})</Text>
                         <Slider
                             aria-label="slider-ex-1"
@@ -197,7 +195,6 @@ const Dashboard = () => {
                             </SliderTrack>
                             <SliderThumb />
                         </Slider>
-
                         <Text>Steps ({steps})</Text>
                         <Slider
                             aria-label="slider-ex-1"
@@ -228,29 +225,6 @@ const Dashboard = () => {
                                 Random Seed
                             </Checkbox>
                         </Stack>
-                        <Stack direction="row" spacing={5}>
-                            <NumberInput
-                                value={height}
-                                onChange={handleHeightChange}
-                                style={{
-                                    maxWidth: "100px",
-                                    textAlign: "center",
-                                }}
-                            >
-                                <NumberInputField />
-                            </NumberInput>
-                            <div style={{ paddingTop: "5px" }}>X</div>
-                            <NumberInput
-                                value={width}
-                                onChange={handleWidthChange}
-                                style={{
-                                    maxWidth: "100px",
-                                    textAlign: "center",
-                                }}
-                            >
-                                <NumberInputField />
-                            </NumberInput>
-                        </Stack>
                         <Textarea
                             placeholder="Positive Prompt"
                             onChange={handlePositivePromptChange}
@@ -259,11 +233,9 @@ const Dashboard = () => {
                             placeholder="Negative Prompt"
                             onChange={handleNegetivePromptChange}
                         />
-
                         <Button colorScheme="blue" onClick={generate}>
                             Generate
                         </Button>
-
                         {inProgress && <Progress hasStripe value={progress} />}
                     </Stack>
                 </Box>
