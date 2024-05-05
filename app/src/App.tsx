@@ -1,14 +1,13 @@
-import React from 'react';
-import './App.css';
+import "./App.css";
+import { ComfyProvider } from "./comfy/ComfyProvider";
 import Dashboard from "./dashboard/dashboard";
-import {ComfyProvider} from "./comfy/ComfyProvider";
 
 function App() {
-  return (
-      <ComfyProvider>
-          <Dashboard></Dashboard>
-      </ComfyProvider>
-  );
+    return (
+        <ComfyProvider>
+            <Dashboard />
+        </ComfyProvider>
+    );
 }
 
 export default App;

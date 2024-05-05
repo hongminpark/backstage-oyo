@@ -6,7 +6,7 @@ from aiohttp import web
 
 # Set your web app name here, this will result access to it via <compfy-url>/<your-app-name>
 # Note! you shoud set the same value in app/.env file for react app to build to the same path!.
-APP_NAME="root" # <- CHANGE ME
+APP_NAME="backstage" # <- CHANGE ME
 
 WEBROOT = os.path.join(os.path.dirname(os.path.realpath(__file__)), "web")
 
