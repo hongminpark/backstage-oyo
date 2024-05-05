@@ -7,6 +7,7 @@ import {
     NumberInput,
     NumberInputField,
     Progress,
+    Select,
     Slider,
     SliderFilledTrack,
     SliderThumb,
@@ -26,9 +27,17 @@ import {
 import { useComfy } from "../comfy/ComfyProvider";
 import { base } from "./image";
 
+export const COMFYUI_HOST = "121.67.246.191";
+export const COMFYUI_PORT = "8890";
+
 const Dashboard = () => {
     const toast = useToast();
     const IMAGE_SIZE = 1024;
+    const baseURL =
+        process.env.NODE_ENV === "development"
+            ? `http://${COMFYUI_HOST}:${COMFYUI_PORT}`
+            : ``;
+
     const { queuePrompt, fetchCheckpoints } = useComfy();
     const [rand, setRand] = useState<number>(Math.random);
     const [image, setImage] = useState<string | null>(null);
@@ -55,9 +64,10 @@ const Dashboard = () => {
         updateCheckpoint();
         Subscribe("dashboard", (event) => {
             const message = JSON.parse(event.data);
-            console.log(message);
+            // console.log(message);
             if (message.type === WS_MESSAGE_TYPE_EXECUTED) {
                 setRand((prev) => Math.random());
+                // TODO: set multiple images
                 setImage((prev) => message.data.output.images[0].filename);
                 setInProgress((prev) => false);
                 setProgress((prev) => 0);
@@ -74,21 +84,20 @@ const Dashboard = () => {
 
     function updateCheckpoint() {
         fetchCheckpoints().then((checkpoints) => {
-            console.log(checkpoints);
             setCheckpoints((prev) => checkpoints);
         });
     }
 
     function generate() {
-        if (selectedCheckpoint === "") {
-            toast({
-                title: "Prompt Submitted",
-                description: "No Checkpoint is selected",
-                status: "error",
-                duration: 2000,
-                isClosable: true,
-            });
-        }
+        // if (selectedCheckpoint === "") {
+        //     toast({
+        //         title: "Prompt Submitted",
+        //         description: "No Checkpoint is selected",
+        //         status: "error",
+        //         duration: 2000,
+        //         isClosable: true,
+        //     });
+        // }
         queuePrompt({
             cfg: cfg,
             steps: steps,
@@ -169,7 +178,7 @@ const Dashboard = () => {
                         spacing={6}
                         style={{ marginTop: "5vh" }}
                     >
-                        {/* <Select
+                        <Select
                             placeholder="Select Checkpoint"
                             value={selectedCheckpoint}
                             onChange={handleSelectChange}
@@ -180,7 +189,7 @@ const Dashboard = () => {
                                         {option}
                                     </option>
                                 ))}
-                        </Select> */}
+                        </Select>
                         <Text>CFG ({cfg})</Text>
                         <Slider
                             aria-label="slider-ex-1"
@@ -255,9 +264,11 @@ const Dashboard = () => {
                         borderRadius="md"
                     >
                         <>
+                            {/* TODO - edit url */}
                             {image && (
                                 <Image
-                                    src={`/view?filename=${image}&type=output&rand=${rand}`}
+                                    // src={`/view?filename=${image}&type=output&rand=${rand}`}
+                                    src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
                                     alt=""
                                     objectFit="cover"
                                     style={{
