@@ -25,7 +25,6 @@ import {
     WS_MESSAGE_TYPE_PROGRESS,
 } from "../comfy/api";
 import { useComfy } from "../comfy/ComfyProvider";
-import { base } from "./image";
 
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
@@ -40,8 +39,7 @@ const Dashboard = () => {
 
     const { queuePrompt, fetchCheckpoints } = useComfy();
     const [rand, setRand] = useState<number>(Math.random);
-    const [image, setImage] = useState<string | null>(null);
-
+    const [images, setImages] = useState<string[] | null>(null);
     const [checkpoints, setCheckpoints] = useState<string[][]>([]);
     const [selectedCheckpoint, setSelectedCheckpoint] = useState<string>("");
 
@@ -64,11 +62,13 @@ const Dashboard = () => {
         updateCheckpoint();
         Subscribe("dashboard", (event) => {
             const message = JSON.parse(event.data);
-            // console.log(message);
             if (message.type === WS_MESSAGE_TYPE_EXECUTED) {
                 setRand((prev) => Math.random());
-                // TODO: set multiple images
-                setImage((prev) => message.data.output.images[0].filename);
+                setImages(
+                    message.data.output.images
+                        .slice(0, 4)
+                        .map((img) => img.filename)
+                );
                 setInProgress((prev) => false);
                 setProgress((prev) => 0);
             } else if (message.type === WS_MESSAGE_TYPE_PROGRESS) {
@@ -167,7 +167,7 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="text-xs text-black">
+        <div className="w-screen h-screen flex overflow-hidden">
             <Stack direction="row" spacing={2} style={{ width: "100%" }}>
                 <Box
                     flex="1"
@@ -255,41 +255,32 @@ const Dashboard = () => {
                     justifyContent="center"
                     h="100vh"
                 >
-                    <AspectRatio
-                        minWidth="80%"
-                        maxW="80%"
-                        ratio={1}
-                        border="2px solid black"
-                        p="4"
-                        borderRadius="md"
-                    >
-                        <>
-                            {/* TODO - edit url */}
-                            {image && (
-                                <Image
-                                    // src={`/view?filename=${image}&type=output&rand=${rand}`}
-                                    src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
-                                    alt=""
-                                    objectFit="cover"
-                                    style={{
-                                        width: "100%",
-                                        height: "100%",
-                                        objectFit: "contain",
-                                    }}
-                                />
-                            )}
-                            {!image && <img src={base} alt="Red dot" />}
-                        </>
-                    </AspectRatio>
-                </Box>
-                <Box flex="1">
-                    {/*<Spinner*/}
-                    {/*    thickness='4px'*/}
-                    {/*    speed='0.65s'*/}
-                    {/*    emptyColor='gray.200'*/}
-                    {/*    color='blue.500'*/}
-                    {/*    size='xl'*/}
-                    {/*/>*/}
+                    {images?.length > 0 &&
+                        images.map((image, index) => (
+                            <AspectRatio
+                                key={index}
+                                minWidth="80%"
+                                maxW="80%"
+                                ratio={1}
+                                border="1px solid black"
+                                p="4"
+                            >
+                                <>
+                                    {image && (
+                                        <Image
+                                            src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
+                                            alt=""
+                                            objectFit="cover"
+                                            style={{
+                                                width: "100%",
+                                                height: "100%",
+                                                objectFit: "contain",
+                                            }}
+                                        />
+                                    )}
+                                </>
+                            </AspectRatio>
+                        ))}
                 </Box>
             </Stack>
         </div>
