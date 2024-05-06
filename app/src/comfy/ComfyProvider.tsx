@@ -1,13 +1,14 @@
 import axios from "axios";
 import React, { createContext, ReactNode, useContext, useEffect } from "react";
 import { GetWebSocket, Root } from "./api";
-import { BASE_WORKFLOW } from "./workflow";
+import { WORKFLOW_BASE, WORKFLOW_REMBG } from "./workflow";
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
 
 interface DataContextProps {
     fetchCheckpoints: () => Promise<string[][]>;
     queuePrompt: (params) => Promise<any>;
+    queuePrompt_rembg: (params) => Promise<any>;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -36,11 +37,27 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
     useEffect(() => {
         GetWebSocket();
     }, []);
+
     const queuePrompt = async (params) => {
-        BASE_WORKFLOW["3"].inputs.seed = params.seed;
-        BASE_WORKFLOW["169"].inputs.image = params.baseImage;
-        BASE_WORKFLOW["6"].inputs.text = params.positivePrompt;
-        const data = { prompt: BASE_WORKFLOW, client_id: "1122" };
+        WORKFLOW_BASE["3"].inputs.seed = params.seed;
+        WORKFLOW_BASE["169"].inputs.image = params.baseImage;
+        WORKFLOW_BASE["6"].inputs.text = params.positivePrompt;
+        const data = { prompt: WORKFLOW_BASE, client_id: "1122" };
+
+        const response = await fetch(`${baseURL}/prompt`, {
+            method: "POST",
+            mode: "no-cors",
+            cache: "no-cache",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+    };
+
+    const queuePrompt_rembg = async (params) => {
+        WORKFLOW_REMBG["9"].inputs.image = params.image;
+        const data = { prompt: WORKFLOW_REMBG, client_id: "1122" };
 
         const response = await fetch(`${baseURL}/prompt`, {
             method: "POST",
@@ -54,7 +71,9 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
     };
 
     return (
-        <DataContext.Provider value={{ fetchCheckpoints, queuePrompt }}>
+        <DataContext.Provider
+            value={{ fetchCheckpoints, queuePrompt, queuePrompt_rembg }}
+        >
             {children}
         </DataContext.Provider>
     );

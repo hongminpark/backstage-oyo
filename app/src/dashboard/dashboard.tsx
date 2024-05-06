@@ -59,7 +59,7 @@ const Dashboard = () => {
             ? `http://${COMFYUI_HOST}:${COMFYUI_PORT}`
             : ``;
 
-    const { queuePrompt, fetchCheckpoints } = useComfy();
+    const { queuePrompt, fetchCheckpoints, queuePrompt_rembg } = useComfy();
     const [rand, setRand] = useState<number>(Math.random);
     const [seed, setSeed] = useState(
         Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
@@ -74,10 +74,14 @@ const Dashboard = () => {
     ]);
     const [inProgress, setInProgress] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [prompt, setPrompt] = useState("Imagine your photo");
 
+    // FIXME: image variable format 통일
     const [selectedBaseImage, setSelectedBaseImage] = useState();
     const [selectedFaceImage, setSelectedFaceImage] = useState();
-    const [prompt, setPrompt] = useState("Imagine your photo");
+    const [selectedImage, setSelectedImage] = useState(
+        "http://121.67.246.191:8890/view?filename=detailed__00144_.png&type=output&rand=0.9932219956795625"
+    );
 
     const toggleBaseImageSelection = (img) => {
         if (selectedBaseImage === img) {
@@ -101,6 +105,8 @@ const Dashboard = () => {
         updateCheckpoint();
         Subscribe("dashboard", (event) => {
             const message = JSON.parse(event.data);
+            // TODO - workflow 구분 필요
+            if (message.type === "crystools.monitor") return;
             if (message.type === WS_MESSAGE_TYPE_EXECUTED) {
                 setRand((prev) => Math.random());
                 setImages((prevImages) => [
@@ -173,9 +179,27 @@ const Dashboard = () => {
 
         setSeed((prev) => Math.round(Math.random() * Number.MAX_SAFE_INTEGER));
     };
-    const [selectedImage, setSelectedImage] = useState(
-        "http://121.67.246.191:8890/view?filename=detailed__00144_.png&type=output&rand=0.9932219956795625"
-    );
+
+    const removeBackground = async () => {
+        if (!selectedImage) {
+            toast({
+                title: "Remove Background error",
+                description: "Please select a base image.",
+                status: "error",
+                duration: 2000,
+                isClosable: true,
+            });
+            return;
+        }
+
+        //@ts-ignore
+        const encodedImage = await convertUrlToBase64(selectedImage);
+        queuePrompt_rembg({
+            image: encodedImage,
+        }).then((res) => {
+            setInProgress(true);
+        });
+    };
 
     return (
         <div className="w-screen h-screen flex overflow-hidden">
@@ -185,14 +209,22 @@ const Dashboard = () => {
                         <div className="flex w-full h-full justify-center items-center">
                             <button
                                 onClick={() => setSelectedImage(null)}
-                                className="absolute top-2 left-3 z-10 text-black items-center text-sm"
+                                className="absolute top-2 left-3 z-10 text-black items-center text-3xs"
                             >
-                                <span>x</span>
+                                <span className="hover:underline">CLOSE</span>
                             </button>
-                            <img
-                                src={selectedImage}
-                                className="min-w-[512px] max-w-[1024px] w-1/2 object-cover aspect-1"
-                            />
+                            <div className="flex flex-col gap-4 w-full justify-center items-center">
+                                <img
+                                    src={selectedImage}
+                                    className="min-w-[512px] max-w-[1024px] w-1/2 object-cover aspect-1"
+                                />
+                                <div
+                                    className="py-1 px-4 border bg-white text-black hover:bg-black hover:text-white border-black hover:cursor-pointer"
+                                    onClick={removeBackground}
+                                >
+                                    Remove Background
+                                </div>
+                            </div>
                         </div>
                     </ResizablePanel>
                 )}
@@ -212,15 +244,21 @@ const Dashboard = () => {
                                     </div>
                                 )}
                                 <div className="p-4 flex flex-col gap-4 items-center h-full">
-                                    {/* {images?.length > 0 &&
+                                    {images?.length > 0 &&
                                         images.map((image, index) => (
-                                            <img
-                                                key={index}
-                                                src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
-                                                className="w-full object-cover aspect-1 hover:cursor-pointer"
-                                                onClick={() => setSelectedImage(image)}
-                                            />
-                                        ))} */}
+                                            <div className="hover:border hover:border-black ">
+                                                <img
+                                                    key={index}
+                                                    src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
+                                                    className="w-full object-cover aspect-1 hover:cursor-pointer"
+                                                    onClick={() =>
+                                                        setSelectedImage(
+                                                            `${baseURL}/view?filename=${image}&type=output&rand=${rand}`
+                                                        )
+                                                    }
+                                                />
+                                            </div>
+                                        ))}
                                     {tempImages?.length > 0 &&
                                         tempImages.map((image, index) => (
                                             <div className="hover:border hover:border-black ">
@@ -385,14 +423,10 @@ const Dashboard = () => {
                                 <ResizablePanel defaultSize={30}>
                                     <div className="flex flex-col h-full p-4 gap-2">
                                         <button
-                                            className={`relative border border-black px-2 py-1 w-max ${
+                                            className={`relative border border-black px-2 py-1 w-max hover:cursor-pointer ${
                                                 inProgress
-                                                    ? ""
-                                                    : "hover:bg-white hover:text-black"
-                                            } ${
-                                                inProgress
-                                                    ? "bg-white text-black"
-                                                    : "bg-black text-white "
+                                                    ? "bg-black text-white"
+                                                    : "bg-white text-black hover:bg-black hover:text-white"
                                             } text-2xs flex items-center justify-center`}
                                             onClick={generate}
                                             disabled={inProgress}

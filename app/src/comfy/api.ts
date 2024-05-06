@@ -6,6 +6,7 @@ export const WS_MESSAGE_TYPE_EXECUTION_START = "execution_start";
 export const WS_MESSAGE_TYPE_EXECUTION_CACHED = "execution_cached";
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
+export const CLIENT_ID = "1122";
 
 interface Callbacks {
     [key: string]: (message: any) => void;
@@ -34,8 +35,9 @@ export function GetWebSocket() {
     }
 
     webseocket = new WebSocket(
-        "ws://" + hostname + ":" + port + "/ws?clientId=1122"
+        `ws://${hostname}:${port}/ws?clientId=${CLIENT_ID}`
     );
+
     // Define event handlers for the WebSocket connection
     webseocket.onopen = () => {
         console.log("WebSocket connected");
@@ -43,7 +45,7 @@ export function GetWebSocket() {
 
     webseocket.onmessage = (event) => {
         Object.entries(subscribers).forEach(([key, callback]) => {
-            callback(event); // Call the function
+            callback(event);
         });
     };
 
