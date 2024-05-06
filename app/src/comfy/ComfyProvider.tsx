@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { createContext, ReactNode, useContext, useEffect } from "react";
-import { GetWebSocket, Root, WORKFLOW } from "./api";
+import { GetWebSocket, Root } from "./api";
+import { BASE_WORKFLOW } from "./workflow";
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
 
@@ -36,10 +37,10 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
         GetWebSocket();
     }, []);
     const queuePrompt = async (params) => {
-        console.log(params);
-        WORKFLOW["169"].inputs.image = params.baseImage;
-        WORKFLOW["6"].inputs.text = params.positivePrompt;
-        const data = { prompt: WORKFLOW, client_id: "1122" };
+        BASE_WORKFLOW["3"].inputs.seed = params.seed;
+        BASE_WORKFLOW["169"].inputs.image = params.baseImage;
+        BASE_WORKFLOW["6"].inputs.text = params.positivePrompt;
+        const data = { prompt: BASE_WORKFLOW, client_id: "1122" };
 
         const response = await fetch(`${baseURL}/prompt`, {
             method: "POST",
@@ -50,8 +51,6 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
             },
             body: JSON.stringify(data),
         });
-
-        return response.json();
     };
 
     return (

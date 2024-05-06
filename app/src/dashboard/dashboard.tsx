@@ -1,4 +1,4 @@
-import { useToast } from "@chakra-ui/react";
+import { Progress, Textarea, useToast } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import {
     Subscribe,
@@ -21,14 +21,15 @@ import {
 
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
+
 const baseImages = [
     {
         src: `${process.env.PUBLIC_URL}/demo/base01.jpeg`,
-        desc: "Female, portrait, short straight blonde hair, grey eyes, wearing white satin top, studio lighting, white background",
+        desc: "celine fashion model, female, portrait, short straight blonde hair, grey eyes, wearing white satin top, studio lighting, white background",
     },
     {
         src: `${process.env.PUBLIC_URL}/demo/base02.jpeg`,
-        desc: "Female, portrait, long straight blonde hair, blue eyes, wearing black tank top, studio lighting, white background",
+        desc: "prada fashion model, korean female, portrait, long black hair, wearing black satin tank top, studio lighting, white color background",
     },
 ];
 
@@ -60,25 +61,23 @@ const Dashboard = () => {
 
     const { queuePrompt, fetchCheckpoints } = useComfy();
     const [rand, setRand] = useState<number>(Math.random);
-    const [images, setImages] = useState<string[] | null>(null);
-    const [tempImages, setTempImages] = useState<string[] | null>([
-        `${process.env.PUBLIC_URL}/demo/face_main01.png`,
-        `${process.env.PUBLIC_URL}/demo/face_main02.png`,
-        `${process.env.PUBLIC_URL}/demo/face_main03.png`,
-        `${process.env.PUBLIC_URL}/demo/face_main04.png`,
-    ]);
-    const [checkpoints, setCheckpoints] = useState<string[][]>([]);
     const [seed, setSeed] = useState(
         Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
     );
-    const [randomSeed, setRandomSeed] = useState(true);
 
+    const [images, setImages] = useState<string[] | null>([]);
+    const [tempImages, setTempImages] = useState<string[] | null>([
+        "http://121.67.246.191:8890/view?filename=detailed__00144_.png&type=output&rand=0.9932219956795625",
+        "http://121.67.246.191:8890/view?filename=detailed__00145_.png&type=output&rand=0.9932219956795625",
+        "http://121.67.246.191:8890/view?filename=detailed__00146_.png&type=output&rand=0.9932219956795625",
+        "http://121.67.246.191:8890/view?filename=detailed__00147_.png&type=output&rand=0.9932219956795625",
+    ]);
     const [inProgress, setInProgress] = useState(false);
     const [progress, setProgress] = useState(0);
 
     const [selectedBaseImage, setSelectedBaseImage] = useState();
     const [selectedFaceImage, setSelectedFaceImage] = useState();
-    const [prompt, setPrompt] = useState("Initial Text");
+    const [prompt, setPrompt] = useState("Imagine your photo");
 
     const toggleBaseImageSelection = (img) => {
         if (selectedBaseImage === img) {
@@ -104,11 +103,12 @@ const Dashboard = () => {
             const message = JSON.parse(event.data);
             if (message.type === WS_MESSAGE_TYPE_EXECUTED) {
                 setRand((prev) => Math.random());
-                setImages(
-                    message.data.output.images
+                setImages((prevImages) => [
+                    ...message.data.output.images
                         .slice(0, 4)
-                        .map((img) => img.filename)
-                );
+                        .map((img) => img.filename),
+                    ...prevImages,
+                ]);
                 setInProgress((prev) => false);
                 setProgress((prev) => 0);
             } else if (message.type === WS_MESSAGE_TYPE_PROGRESS) {
@@ -124,17 +124,15 @@ const Dashboard = () => {
 
     function updateCheckpoint() {
         fetchCheckpoints().then((checkpoints) => {
-            setCheckpoints((prev) => checkpoints);
+            console.log("Fetch server status success.", checkpoints);
         });
     }
 
     const convertUrlToBase64 = async (imageUrl) => {
         try {
-            // Fetch the image as a Blob
             const response = await fetch(imageUrl);
             const blob = await response.blob();
 
-            // Create a FileReader object to read the Blob
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onloadend = () => {
@@ -155,7 +153,7 @@ const Dashboard = () => {
         if (!selectedBaseImage) {
             toast({
                 title: "Prompt Submission Error",
-                description: "No base image selected",
+                description: "Please select a base image.",
                 status: "error",
                 duration: 2000,
                 isClosable: true,
@@ -166,50 +164,49 @@ const Dashboard = () => {
         //@ts-ignore
         const encodedImage = await convertUrlToBase64(selectedBaseImage.src);
         queuePrompt({
+            seed,
             baseImage: encodedImage,
             positivePrompt: prompt,
         }).then((res) => {
-            console.log(res);
-            if (res.prompt_id) {
-                // const examplePromise = new Promise((resolve, reject) => {
-                //     setTimeout(() => resolve(200), 5000)
-                // })
-                // toast.promise(examplePromise, {
-                //     success: { title: 'Complete', description: 'Looks great' },
-                //     error: { title: 'Error', description: 'Something wrong' },
-                //     loading: { title: 'Generating pending', description: 'Please wait' },
-                // })
-                toast({
-                    title: "Prompt Submitted",
-                    description: res.prompt_id,
-                    status: "success",
-                    duration: 2000,
-                    isClosable: true,
-                });
-                setInProgress(true);
-            }
+            setInProgress(true);
         });
-        if (randomSeed) {
-            setSeed((prev) =>
-                Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
-            );
-        }
+
+        setSeed((prev) => Math.round(Math.random() * Number.MAX_SAFE_INTEGER));
     };
 
     return (
-        <div className="w-screen h-screen flex overflow-hidden font-sans">
+        <div className="w-screen h-screen flex overflow-hidden">
             <ResizablePanelGroup direction="horizontal">
                 <ResizablePanel>
-                    <div className="flex flex-col overflow-y-auto flex-nowrap p-6 items-center h-full">
-                        {images?.length > 0 &&
-                            images.map((image, index) => (
+                    <div className="overflow-y-auto flex-nowrap h-full">
+                        {inProgress && (
+                            <div className="p-4 w-full aspect-[1/1] flex flex-col justify-center">
+                                <Progress
+                                    colorScheme="black"
+                                    isAnimated
+                                    height="1px"
+                                    value={progress}
+                                />
+                            </div>
+                        )}
+                        <div className="p-4 flex flex-col gap-4 items-center h-full">
+                            {images?.length > 0 &&
+                                images.map((image, index) => (
+                                    <img
+                                        key={index}
+                                        src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
+                                        className="w-full object-cover aspect-1"
+                                    />
+                                ))}
+                            {/* {tempImages?.length > 0 &&
+                            tempImages.map((image, index) => (
                                 <img
                                     key={index}
-                                    src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
-                                    // src={image}
+                                    src={image}
                                     className="w-full object-cover aspect-1"
                                 />
-                            ))}
+                            ))} */}
+                        </div>
                     </div>
                 </ResizablePanel>
                 <ResizableHandle />
@@ -221,11 +218,7 @@ const Dashboard = () => {
                                     type="multiple"
                                     // collapsible
                                     className="w-full"
-                                    defaultValue={[
-                                        "item-1",
-                                        "item-2",
-                                        "item-3",
-                                    ]}
+                                    defaultValue={["item-1", "item-3"]}
                                 >
                                     <AccordionItem value="item-1">
                                         <AccordionTrigger className="text-2xs px-4 py-2">
@@ -321,16 +314,21 @@ const Dashboard = () => {
                                                 <div className="text-2xs">
                                                     Enter keyword for image.
                                                 </div>
-                                                <input
-                                                    type="text"
+                                                <Textarea
                                                     value={prompt}
                                                     onChange={(e) =>
                                                         setPrompt(
                                                             e.target.value
                                                         )
                                                     }
-                                                    className="w-full px-2 py-1 border border-black border-opacity-25 focus:outline-none focus:border-black text-2xs"
                                                     placeholder="Type prompt"
+                                                    size="xs"
+                                                    resize="none"
+                                                    width="full"
+                                                    borderColor="black"
+                                                    focusBorderColor="black"
+                                                    fontSize="xs"
+                                                    borderRadius={0}
                                                 />
                                                 <div className="text-2xs">
                                                     Recommended keyword : white
@@ -347,8 +345,17 @@ const Dashboard = () => {
                         <ResizablePanel defaultSize={30}>
                             <div className="flex flex-col h-full p-4 gap-2">
                                 <button
-                                    className="relative border border-black px-2 py-1 w-max hover:bg-white hover:text-black bg-black text-white text-2xs flex items-center justify-center"
+                                    className={`relative border border-black px-2 py-1 w-max ${
+                                        inProgress
+                                            ? ""
+                                            : "hover:bg-white hover:text-black"
+                                    } ${
+                                        inProgress
+                                            ? "bg-white text-black"
+                                            : "bg-black text-white "
+                                    } text-2xs flex items-center justify-center`}
                                     onClick={generate}
+                                    disabled={inProgress}
                                 >
                                     Generate
                                 </button>
