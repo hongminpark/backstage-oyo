@@ -1,18 +1,12 @@
 import axios from "axios";
 import React, { createContext, ReactNode, useContext, useEffect } from "react";
-import {
-    DashboardGenParams,
-    GetWebSocket,
-    Root,
-    WORKFLOW,
-    WORKFLOW_2,
-} from "./api";
+import { GetWebSocket, Root, WORKFLOW } from "./api";
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
 
 interface DataContextProps {
     fetchCheckpoints: () => Promise<string[][]>;
-    queuePrompt: (params: DashboardGenParams) => Promise<any>;
+    queuePrompt: (params) => Promise<any>;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -41,17 +35,11 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
     useEffect(() => {
         GetWebSocket();
     }, []);
-    const queuePrompt = async (params: DashboardGenParams) => {
+    const queuePrompt = async (params) => {
         console.log(params);
-        WORKFLOW["3"].inputs.seed = params.seed;
-        WORKFLOW["3"].inputs.cfg = params.cfg;
-        WORKFLOW["3"].inputs.steps = params.steps;
-        WORKFLOW["4"].inputs.ckpt_name = params.checkpoint;
-        WORKFLOW["5"].inputs.height = params.height;
-        WORKFLOW["5"].inputs.width = params.width;
+        WORKFLOW["169"].inputs.image = params.baseImage;
         WORKFLOW["6"].inputs.text = params.positivePrompt;
-        WORKFLOW["7"].inputs.text = params.negativePrompt;
-        const data = { prompt: WORKFLOW_2, client_id: "1122" };
+        const data = { prompt: WORKFLOW, client_id: "1122" };
 
         const response = await fetch(`${baseURL}/prompt`, {
             method: "POST",

@@ -53,17 +53,6 @@ export function GetWebSocket() {
     return webseocket;
 }
 
-export interface DashboardGenParams {
-    cfg: number;
-    steps: number;
-    seed: number;
-    checkpoint: string;
-    height: number;
-    width: number;
-    positivePrompt: string;
-    negativePrompt: string;
-}
-
 export interface Root {
     CheckpointLoaderSimple: CheckpointLoaderSimple;
 }
@@ -88,8 +77,7 @@ export interface CheckpointLoaderSimple {
     output_node: boolean;
 }
 
-// FIXME: change steps
-export const WORKFLOW_2 = {
+export const WORKFLOW = {
     "3": {
         inputs: {
             seed: Math.round(Math.random() * Number.MAX_SAFE_INTEGER),
@@ -262,66 +250,6 @@ export const WORKFLOW_2 = {
         class_type: "ETN_LoadImageBase64",
         _meta: {
             title: "Load Image (Base64)",
-        },
-    },
-};
-
-export const WORKFLOW = {
-    "3": {
-        class_type: "KSampler",
-        inputs: {
-            cfg: 3,
-            denoise: 1,
-            latent_image: ["5", 0],
-            model: ["4", 0],
-            negative: ["7", 0],
-            positive: ["6", 0],
-            sampler_name: "euler",
-            scheduler: "normal",
-            seed: Math.round(Math.random() * 100000),
-            steps: 5,
-        },
-    },
-    "4": {
-        class_type: "CheckpointLoaderSimple",
-        inputs: {
-            ckpt_name: "DreamShaperXL_Turbo_v2_1.safetensors",
-        },
-    },
-    "5": {
-        class_type: "EmptyLatentImage",
-        inputs: {
-            batch_size: 1,
-            height: 1024,
-            width: 1024,
-        },
-    },
-    "6": {
-        class_type: "CLIPTextEncode",
-        inputs: {
-            clip: ["4", 1],
-            text: "masterpiece best quality fish",
-        },
-    },
-    "7": {
-        class_type: "CLIPTextEncode",
-        inputs: {
-            clip: ["4", 1],
-            text: "bad hands",
-        },
-    },
-    "8": {
-        class_type: "VAEDecode",
-        inputs: {
-            samples: ["3", 0],
-            vae: ["4", 2],
-        },
-    },
-    "9": {
-        class_type: "SaveImage",
-        inputs: {
-            filename_prefix: "ComfyUI",
-            images: ["8", 0],
         },
     },
 };

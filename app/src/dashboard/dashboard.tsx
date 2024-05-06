@@ -23,37 +23,36 @@ export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
 const baseImages = [
     {
-        src: "/demo/base01.jpeg",
+        src: `${process.env.PUBLIC_URL}/demo/base01.jpeg`,
         desc: "Female, portrait, short straight blonde hair, grey eyes, wearing white satin top, studio lighting, white background",
     },
     {
-        src: "/demo/base02.jpeg",
+        src: `${process.env.PUBLIC_URL}/demo/base02.jpeg`,
         desc: "Female, portrait, long straight blonde hair, blue eyes, wearing black tank top, studio lighting, white background",
     },
 ];
 
 const faceImages = [
     {
-        src: "/demo/face_main01.png",
+        src: `${process.env.PUBLIC_URL}/demo/face_main01.png`,
         desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
     },
     {
-        src: "/demo/face_main02.png",
+        src: `${process.env.PUBLIC_URL}/demo/face_main02.png`,
         desc: "straight black hair, minimalist makeup, serene expression, soft features, even skin tone",
     },
     {
-        src: "/demo/face_main03.png",
+        src: `${process.env.PUBLIC_URL}/demo/face_main03.png`,
         desc: "Caucasian, blonde straight hair, light makeup, calm expression, clear skin, subtle lips",
     },
     {
-        src: "/demo/face_main04.png",
+        src: `${process.env.PUBLIC_URL}/demo/face_main04.png`,
         desc: "Caucasian, blonde short hair, minimal makeup, neutral expression, clear skin, defined cheekbones",
     },
 ];
 
 const Dashboard = () => {
     const toast = useToast();
-    const IMAGE_SIZE = 1024;
     const baseURL =
         process.env.NODE_ENV === "development"
             ? `http://${COMFYUI_HOST}:${COMFYUI_PORT}`
@@ -69,16 +68,10 @@ const Dashboard = () => {
         `${process.env.PUBLIC_URL}/demo/face_main04.png`,
     ]);
     const [checkpoints, setCheckpoints] = useState<string[][]>([]);
-    const [selectedCheckpoint, setSelectedCheckpoint] = useState<string>("");
-
-    const [cfg, setCfg] = useState(5);
-    const [steps, setSteps] = useState(25);
     const [seed, setSeed] = useState(
         Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
     );
     const [randomSeed, setRandomSeed] = useState(true);
-    const [positivePrompt, setPositivePrompt] = useState("");
-    const [negetivePrompt, setNegetivePrompt] = useState("");
 
     const [inProgress, setInProgress] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -135,25 +128,46 @@ const Dashboard = () => {
         });
     }
 
-    function generate() {
-        // if (selectedCheckpoint === "") {
-        //     toast({
-        //         title: "Prompt Submitted",
-        //         description: "No Checkpoint is selected",
-        //         status: "error",
-        //         duration: 2000,
-        //         isClosable: true,
-        //     });
-        // }
+    const convertUrlToBase64 = async (imageUrl) => {
+        try {
+            // Fetch the image as a Blob
+            const response = await fetch(imageUrl);
+            const blob = await response.blob();
+
+            // Create a FileReader object to read the Blob
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    const base64String =
+                        //@ts-ignore
+                        reader.result.split(",")[1] || reader.result;
+                    resolve(base64String);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        } catch (error) {
+            console.error("Error converting URL to base64:", error);
+        }
+    };
+
+    const generate = async () => {
+        if (!selectedBaseImage) {
+            toast({
+                title: "Prompt Submission Error",
+                description: "No base image selected",
+                status: "error",
+                duration: 2000,
+                isClosable: true,
+            });
+            return;
+        }
+
+        //@ts-ignore
+        const encodedImage = await convertUrlToBase64(selectedBaseImage.src);
         queuePrompt({
-            cfg: cfg,
-            steps: steps,
-            seed: seed,
-            checkpoint: selectedCheckpoint,
-            height: IMAGE_SIZE,
-            width: IMAGE_SIZE,
-            positivePrompt: positivePrompt,
-            negativePrompt: negetivePrompt,
+            baseImage: encodedImage,
+            positivePrompt: prompt,
         }).then((res) => {
             console.log(res);
             if (res.prompt_id) {
@@ -180,7 +194,7 @@ const Dashboard = () => {
                 Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
             );
         }
-    }
+    };
 
     return (
         <div className="w-screen h-screen flex overflow-hidden font-sans">
@@ -242,7 +256,9 @@ const Dashboard = () => {
                                                                 }
                                                             >
                                                                 <img
-                                                                    src={`${process.env.PUBLIC_URL}${image.src}`}
+                                                                    src={
+                                                                        image.src
+                                                                    }
                                                                     alt={`Main Model ${
                                                                         index +
                                                                         1
@@ -280,7 +296,9 @@ const Dashboard = () => {
                                                                 }
                                                             >
                                                                 <img
-                                                                    src={`${process.env.PUBLIC_URL}${image.src}`}
+                                                                    src={
+                                                                        image.src
+                                                                    }
                                                                     alt={`Face Model ${
                                                                         index +
                                                                         1
@@ -343,7 +361,7 @@ const Dashboard = () => {
                                                 </div>
                                                 <img
                                                     //@ts-ignore
-                                                    src={`${process.env.PUBLIC_URL}${selectedBaseImage.src}`}
+                                                    src={selectedBaseImage.src}
                                                     className="w-full aspect-[1/1] object-cover"
                                                 />
                                             </div>
@@ -355,7 +373,7 @@ const Dashboard = () => {
                                                 </div>
                                                 <img
                                                     //@ts-ignore
-                                                    src={`${process.env.PUBLIC_URL}${selectedFaceImage.src}`}
+                                                    src={selectedFaceImage.src}
                                                     className="w-full aspect-[1/1] object-cover"
                                                 />
                                             </div>
@@ -375,121 +393,6 @@ const Dashboard = () => {
                     </ResizablePanelGroup>
                 </ResizablePanel>
             </ResizablePanelGroup>
-            {/* <Stack direction="row" spacing={2} style={{ width: "100%" }}>
-                <Box
-                    flex="1"
-                    style={{ paddingLeft: "20px", paddingRight: "20px" }}
-                >
-                    <Stack
-                        direction={"column"}
-                        spacing={6}
-                        style={{ marginTop: "5vh" }}
-                    >
-                        <Select
-                            placeholder="Select Checkpoint"
-                            value={selectedCheckpoint}
-                            onChange={handleSelectChange}
-                        >
-                            {checkpoints?.length > 0 &&
-                                checkpoints[0].map((option, index) => (
-                                    <option key={index} value={option}>
-                                        {option}
-                                    </option>
-                                ))}
-                        </Select>
-                        <Text>CFG ({cfg})</Text>
-                        <Slider
-                            aria-label="slider-ex-1"
-                            defaultValue={cfg}
-                            min={1}
-                            max={10}
-                            step={0.5}
-                            onChange={handleCFGChange}
-                        >
-                            <SliderTrack>
-                                <SliderFilledTrack />
-                            </SliderTrack>
-                            <SliderThumb />
-                        </Slider>
-                        <Text>Steps ({steps})</Text>
-                        <Slider
-                            aria-label="slider-ex-1"
-                            defaultValue={steps}
-                            min={1}
-                            max={100}
-                            step={1}
-                            onChange={handleStepsChange}
-                        >
-                            <SliderTrack>
-                                <SliderFilledTrack />
-                            </SliderTrack>
-                            <SliderThumb />
-                        </Slider>
-                        <Stack direction="row" spacing={5}>
-                            <NumberInput
-                                value={seed}
-                                min={1}
-                                max={Number.MAX_SAFE_INTEGER}
-                                step={1}
-                            >
-                                <NumberInputField />
-                            </NumberInput>
-                            <Checkbox
-                                isChecked={randomSeed}
-                                onChange={handleRandomSeedChange}
-                            >
-                                Random Seed
-                            </Checkbox>
-                        </Stack>
-                        <Textarea
-                            placeholder="Positive Prompt"
-                            onChange={handlePositivePromptChange}
-                        />
-                        <Textarea
-                            placeholder="Negative Prompt"
-                            onChange={handleNegetivePromptChange}
-                        />
-                        <Button colorScheme="blue" onClick={generate}>
-                            Generate
-                        </Button>
-                        {inProgress && <Progress hasStripe value={progress} />}
-                    </Stack>
-                </Box>
-                <Box
-                    flex="2"
-                    display="flex"
-                    alignItems="center"
-                    justifyContent="center"
-                    h="100vh"
-                >
-                    {images?.length > 0 &&
-                        images.map((image, index) => (
-                            <AspectRatio
-                                key={index}
-                                minWidth="80%"
-                                maxW="80%"
-                                ratio={1}
-                                border="1px solid black"
-                                p="4"
-                            >
-                                <>
-                                    {image && (
-                                        <Image
-                                            src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
-                                            alt=""
-                                            objectFit="cover"
-                                            style={{
-                                                width: "100%",
-                                                height: "100%",
-                                                objectFit: "contain",
-                                            }}
-                                        />
-                                    )}
-                                </>
-                            </AspectRatio>
-                        ))}
-                </Box>
-            </Stack> */}
         </div>
     );
 };
