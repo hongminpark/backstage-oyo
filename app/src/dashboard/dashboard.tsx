@@ -228,7 +228,7 @@ const Dashboard = () => {
                         </div>
                     </ResizablePanel>
                 )}
-                <ResizableHandle />
+                <ResizableHandle className="bg-black" />
                 <ResizablePanel defaultSize={selectedImage ? 15 : 100}>
                     <ResizablePanelGroup direction="horizontal">
                         <ResizablePanel>
@@ -246,7 +246,7 @@ const Dashboard = () => {
                                 <div className="p-4 flex flex-col gap-4 items-center h-full">
                                     {images?.length > 0 &&
                                         images.map((image, index) => (
-                                            <div className="hover:border hover:border-black ">
+                                            <div className="border border-transparent hover:border hover:border-black ">
                                                 <img
                                                     key={index}
                                                     src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
@@ -261,7 +261,7 @@ const Dashboard = () => {
                                         ))}
                                     {tempImages?.length > 0 &&
                                         tempImages.map((image, index) => (
-                                            <div className="hover:border hover:border-black ">
+                                            <div className="border border-transparent hover:border hover:border-black ">
                                                 <img
                                                     src={image}
                                                     className="w-full aspect-[1/1] object-cover hover:cursor-pointer"
@@ -274,7 +274,7 @@ const Dashboard = () => {
                                 </div>
                             </div>
                         </ResizablePanel>
-                        <ResizableHandle />
+                        <ResizableHandle className="bg-black" />
                         <ResizablePanel>
                             <ResizablePanelGroup direction="vertical">
                                 <ResizablePanel defaultSize={70}>
@@ -419,7 +419,7 @@ const Dashboard = () => {
                                         </Accordion>
                                     </div>
                                 </ResizablePanel>
-                                <ResizableHandle />
+                                <ResizableHandle className="bg-black" />
                                 <ResizablePanel defaultSize={30}>
                                     <div className="flex flex-col h-full p-4 gap-2">
                                         <button
