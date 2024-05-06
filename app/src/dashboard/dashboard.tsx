@@ -1,4 +1,4 @@
-import { AspectRatio, Box, useToast } from "@chakra-ui/react";
+import { useToast } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import {
     Subscribe,
@@ -23,34 +23,15 @@ export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
 const baseImages = [
     {
-        src: "/demo/base_w_00.png",
-        desc: "Female, portrait, studio shot, white background, short straight blonde hair, black tank top",
+        src: "/demo/base01.jpeg",
+        desc: "Female, portrait, short straight blonde hair, grey eyes, wearing white satin top, studio lighting, white background",
     },
     {
-        src: "/demo/base_w_01.png",
-        desc: "Female, portrait, studio shot, white background, curly blonde hair, black tank top",
-    },
-    {
-        src: "/demo/base_w_02.png",
-        desc: "Female, portrait, studio shot, white background, braided hair, black tank top",
-    },
-    {
-        src: "/demo/base_w_03.png",
-        desc: "Female, portrait, studio shot, white background, black curly hair, black tank top",
-    },
-    {
-        src: "/demo/base_m_01.png",
-        desc: "Male, portrait, studio shot, white background, curly hair",
-    },
-    {
-        src: "/demo/base_m_02.png",
-        desc: "Male, portrait, soft lighting, studio shot, white background, tousled hair",
-    },
-    {
-        src: "/demo/base_m_03.png",
-        desc: "portrait, studio shot, white background, dreadlocks hair",
+        src: "/demo/base02.jpeg",
+        desc: "Female, portrait, long straight blonde hair, blue eyes, wearing black tank top, studio lighting, white background",
     },
 ];
+
 const faceImages = [
     {
         src: "/demo/face_main01.png",
@@ -81,6 +62,12 @@ const Dashboard = () => {
     const { queuePrompt, fetchCheckpoints } = useComfy();
     const [rand, setRand] = useState<number>(Math.random);
     const [images, setImages] = useState<string[] | null>(null);
+    const [tempImages, setTempImages] = useState<string[] | null>([
+        `${process.env.PUBLIC_URL}/demo/face_main01.png`,
+        `${process.env.PUBLIC_URL}/demo/face_main02.png`,
+        `${process.env.PUBLIC_URL}/demo/face_main03.png`,
+        `${process.env.PUBLIC_URL}/demo/face_main04.png`,
+    ]);
     const [checkpoints, setCheckpoints] = useState<string[][]>([]);
     const [selectedCheckpoint, setSelectedCheckpoint] = useState<string>("");
 
@@ -90,9 +77,6 @@ const Dashboard = () => {
         Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
     );
     const [randomSeed, setRandomSeed] = useState(true);
-
-    const [height, setHeight] = useState(IMAGE_SIZE);
-    const [width, setWidth] = useState(IMAGE_SIZE);
     const [positivePrompt, setPositivePrompt] = useState("");
     const [negetivePrompt, setNegetivePrompt] = useState("");
 
@@ -198,72 +182,20 @@ const Dashboard = () => {
         }
     }
 
-    const handleCFGChange = (value: number) => {
-        setCfg((prev) => value); // Update the state with the new slider value
-    };
-
-    const handleStepsChange = (value: number) => {
-        setSteps((prev) => value); // Update the state with the new slider value
-    };
-
-    const handleSelectChange = (event: any) => {
-        setSelectedCheckpoint(event.target.value);
-    };
-
-    const handleRandomSeedChange = (event: any) => {
-        setRandomSeed(event.target.checked);
-    };
-
-    const handleHeightChange = (sValue: string, value: number) => {
-        setHeight(value);
-    };
-
-    const handleWidthChange = (sValue: string, value: number) => {
-        setWidth(value);
-    };
-
-    const handlePositivePromptChange = (event: any) => {
-        setPositivePrompt(event.target.value);
-    };
-    const handleNegetivePromptChange = (event: any) => {
-        setNegetivePrompt(event.target.value);
-    };
-
     return (
-        <div className="w-screen h-screen flex overflow-hidden">
+        <div className="w-screen h-screen flex overflow-hidden font-sans">
             <ResizablePanelGroup direction="horizontal">
                 <ResizablePanel>
-                    {/* TODO - add result image */}
-                    <div className="flex items-center justify-center p-6">
-                        <Box
-                            flex="2"
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            h="100vh"
-                        >
-                            {images?.length > 0 &&
-                                images.map((image, index) => (
-                                    <AspectRatio
-                                        key={index}
-                                        minWidth="80%"
-                                        maxW="80%"
-                                        ratio={1}
-                                        border="1px solid black"
-                                        p="4"
-                                    >
-                                        <>
-                                            {image && (
-                                                <img
-                                                    src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
-                                                    alt=""
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            )}
-                                        </>
-                                    </AspectRatio>
-                                ))}
-                        </Box>
+                    <div className="flex flex-col overflow-y-auto flex-nowrap p-6 items-center h-full">
+                        {images?.length > 0 &&
+                            images.map((image, index) => (
+                                <img
+                                    key={index}
+                                    src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
+                                    // src={image}
+                                    className="w-full object-cover aspect-1"
+                                />
+                            ))}
                     </div>
                 </ResizablePanel>
                 <ResizableHandle />
@@ -272,25 +204,32 @@ const Dashboard = () => {
                         <ResizablePanel defaultSize={70}>
                             <div className="flex h-full pt-16 overflow-y-auto">
                                 <Accordion
-                                    type="single"
-                                    collapsible
+                                    type="multiple"
+                                    // collapsible
                                     className="w-full"
+                                    defaultValue={[
+                                        "item-1",
+                                        "item-2",
+                                        "item-3",
+                                    ]}
                                 >
-                                    <AccordionItem value="item-1 ">
+                                    <AccordionItem value="item-1">
                                         <AccordionTrigger className="text-2xs px-4 py-2">
                                             <div>1. Base Style</div>
                                         </AccordionTrigger>
                                         <AccordionContent>
                                             <div className="h-full px-4">
                                                 <div className="text-2xs">
-                                                    Select base style image
+                                                    Select base image for
+                                                    overall shape of pose,
+                                                    style.
                                                 </div>
                                                 <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide">
                                                     {baseImages.map(
                                                         (image, index) => (
                                                             <div
                                                                 key={index}
-                                                                className={`flex-none max-w-[256px] w-2/3 lg:w-2/5 aspect-[3/4] relative hover:cursor-pointer overflow-hidden ${
+                                                                className={`flex-none h-[172px] aspect-[1/1] relative hover:border hover:border-black hover:cursor-pointer overflow-hidden ${
                                                                     selectedBaseImage ===
                                                                     image
                                                                         ? "border border-black"
@@ -319,19 +258,16 @@ const Dashboard = () => {
                                     </AccordionItem>
                                     <AccordionItem value="item-2">
                                         <AccordionTrigger className="text-2xs px-4 py-2">
-                                            2. Select Face
+                                            2. Select Face (optional)
                                         </AccordionTrigger>
                                         <AccordionContent>
                                             <div className="h-full px-4">
-                                                <div className="text-2xs">
-                                                    Select face
-                                                </div>
                                                 <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide">
                                                     {faceImages.map(
                                                         (image, index) => (
                                                             <div
                                                                 key={index}
-                                                                className={`flex-none max-w-[256px] w-2/3 lg:w-2/5 aspect-[3/4] relative hover:cursor-pointer overflow-hidden ${
+                                                                className={`flex-none w-[128px] aspect-[1/1] relative hover:cursor-pointer overflow-hidden ${
                                                                     selectedFaceImage ===
                                                                     image
                                                                         ? "border border-black"
@@ -360,12 +296,12 @@ const Dashboard = () => {
                                     </AccordionItem>
                                     <AccordionItem value="item-3">
                                         <AccordionTrigger className="text-2xs px-4 py-2">
-                                            3. Enter description
+                                            3. Describe
                                         </AccordionTrigger>
                                         <AccordionContent>
                                             <div className="h-full px-4">
                                                 <div className="text-2xs">
-                                                    Enter prompt
+                                                    Enter keyword for image.
                                                 </div>
                                                 <input
                                                     type="text"
@@ -378,6 +314,11 @@ const Dashboard = () => {
                                                     className="w-full px-2 py-1 border border-black border-opacity-25 focus:outline-none focus:border-black text-2xs"
                                                     placeholder="Type prompt"
                                                 />
+                                                <div className="text-2xs">
+                                                    Recommended keyword : white
+                                                    background, film grain,
+                                                    studio lighting
+                                                </div>
                                             </div>
                                         </AccordionContent>
                                     </AccordionItem>
@@ -396,26 +337,26 @@ const Dashboard = () => {
                                 <div className="flex flex-col gap-2">
                                     <div className="flex flex-row gap-1 text-2xs">
                                         {selectedBaseImage && (
-                                            <div className="flex-none max-w-[128px] w-1/2 md:w-2/5">
+                                            <div className="flex-none w-[96px]">
                                                 <div className="font-medium">
                                                     Base
                                                 </div>
                                                 <img
                                                     //@ts-ignore
                                                     src={`${process.env.PUBLIC_URL}${selectedBaseImage.src}`}
-                                                    className="w-full aspect-[3/4] object-cover"
+                                                    className="w-full aspect-[1/1] object-cover"
                                                 />
                                             </div>
                                         )}
                                         {selectedFaceImage && (
-                                            <div className="flex-none max-w-[128px] w-1/2 md:w-2/5">
+                                            <div className="flex-none w-[96px]">
                                                 <div className="font-medium">
                                                     Face
                                                 </div>
                                                 <img
                                                     //@ts-ignore
                                                     src={`${process.env.PUBLIC_URL}${selectedFaceImage.src}`}
-                                                    className="w-full aspect-[3/4] object-cover"
+                                                    className="w-full aspect-[1/1] object-cover"
                                                 />
                                             </div>
                                         )}
@@ -425,9 +366,7 @@ const Dashboard = () => {
                                             Prompt
                                         </div>
                                         <div className="text-2xs leading-tight">
-                                            {selectedBaseImage &&
-                                                //@ts-ignore
-                                                selectedBaseImage.desc}
+                                            {selectedBaseImage && prompt}
                                         </div>
                                     </div>
                                 </div>

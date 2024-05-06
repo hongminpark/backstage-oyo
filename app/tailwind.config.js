@@ -17,7 +17,16 @@ module.exports = {
             },
         },
         extend: {
+            fontFamily: {
+                sans: ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
+                garamond: ["Garamond", "serif"],
+            },
+            fontSize: {
+                "2xs": ".75rem",
+                "3xs": ".65rem",
+            },
             colors: {
+                "black-light": "#131415",
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
