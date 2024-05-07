@@ -156,7 +156,7 @@ export const WORKFLOW_BASE = {
     },
     "143": {
         inputs: {
-            filename_prefix: "detailed_",
+            filename_prefix: "backstage_detailed_",
             images: ["8", 0],
         },
         class_type: "SaveImage",
@@ -403,7 +403,7 @@ export const WORKFLOW_FACE_ENHANCED = {
     },
     "174": {
         inputs: {
-            filename_prefix: "result",
+            filename_prefix: "backstage_",
             images: ["170", 0],
         },
         class_type: "SaveImage",
@@ -433,7 +433,7 @@ export const WORKFLOW_REMBG = {
     },
     "8": {
         inputs: {
-            filename_prefix: "ComfyUI",
+            filename_prefix: "backstage_bgremoved_",
             images: ["2", 0],
         },
         class_type: "SaveImage",
