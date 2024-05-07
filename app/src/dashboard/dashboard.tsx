@@ -239,6 +239,27 @@ const Dashboard = () => {
         });
     };
 
+    const download = () => {
+        if (!selectedImage) {
+            toast({
+                title: "Download Error",
+                description: "No image selected to download.",
+                status: "error",
+                duration: 2000,
+                isClosable: true,
+            });
+            return;
+        }
+
+        const imageUrl = `${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`;
+        const link = document.createElement("a");
+        link.href = imageUrl;
+        link.download = selectedImage;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <Layout>
             <div className="w-screen h-screen flex overflow-hidden pt-16">
@@ -271,6 +292,12 @@ const Dashboard = () => {
                                             onClick={removeBackground}
                                         >
                                             Remove Background
+                                        </div>
+                                        <div
+                                            className="py-1 px-4 border bg-white text-black hover:bg-black hover:text-white border-black hover:cursor-pointer"
+                                            onClick={download}
+                                        >
+                                            Download
                                         </div>
                                     </div>
                                 </div>
