@@ -60,7 +60,12 @@ const Dashboard = () => {
             ? `http://${COMFYUI_HOST}:${COMFYUI_PORT}`
             : ``;
 
-    const { queuePrompt, fetchCheckpoints, queuePrompt_rembg } = useComfy();
+    const {
+        queuePrompt,
+        fetchCheckpoints,
+        queuePrompt_rembg,
+        queuePrompt_upscale,
+    } = useComfy();
     const [rand, setRand] = useState<number>(Math.random);
     const [seed, setSeed] = useState(
         Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
@@ -211,6 +216,29 @@ const Dashboard = () => {
         });
     };
 
+    const upscale = async () => {
+        if (!selectedImage) {
+            toast({
+                title: "Upscale error",
+                description: "Please select a base image.",
+                status: "error",
+                duration: 2000,
+                isClosable: true,
+            });
+            return;
+        }
+
+        //@ts-ignore
+        const imageUrl = `${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`;
+        const encodedImage = await convertUrlToBase64(imageUrl);
+        queuePrompt_upscale({
+            image: encodedImage,
+        }).then((res) => {
+            setDetailPromptId(res.prompt_id);
+            setInProgress(true);
+        });
+    };
+
     return (
         <Layout>
             <div className="w-screen h-screen flex overflow-hidden pt-16">
@@ -232,6 +260,12 @@ const Dashboard = () => {
                                             src={`${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`}
                                             className="min-w-[512px] max-w-[1024px] w-1/2 object-cover aspect-1"
                                         />
+                                        <div
+                                            className="py-1 px-4 border bg-white text-black hover:bg-black hover:text-white border-black hover:cursor-pointer"
+                                            onClick={upscale}
+                                        >
+                                            Upscale
+                                        </div>
                                         <div
                                             className="py-1 px-4 border bg-white text-black hover:bg-black hover:text-white border-black hover:cursor-pointer"
                                             onClick={removeBackground}

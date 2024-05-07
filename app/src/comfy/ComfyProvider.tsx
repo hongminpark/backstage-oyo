@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { createContext, ReactNode, useContext, useEffect } from "react";
-import { GetWebSocket, Root } from "./api";
-import { WORKFLOW_BASE, WORKFLOW_REMBG } from "./workflow";
+import { CLIENT_ID, GetWebSocket, Root } from "./api";
+import { WORKFLOW_BASE, WORKFLOW_REMBG, WORKFLOW_UPSCALE } from "./workflow";
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
 
@@ -9,6 +9,7 @@ interface DataContextProps {
     fetchCheckpoints: () => Promise<string[][]>;
     queuePrompt: (params) => Promise<any>;
     queuePrompt_rembg: (params) => Promise<any>;
+    queuePrompt_upscale: (params) => Promise<any>;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -42,7 +43,7 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
         WORKFLOW_BASE["3"].inputs.seed = params.seed;
         WORKFLOW_BASE["169"].inputs.image = params.baseImage;
         WORKFLOW_BASE["6"].inputs.text = params.positivePrompt;
-        const data = { prompt: WORKFLOW_BASE, client_id: "1122" };
+        const data = { prompt: WORKFLOW_BASE, client_id: CLIENT_ID };
 
         const response = await fetch(`${baseURL}/prompt`, {
             method: "POST",
@@ -58,7 +59,22 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
 
     const queuePrompt_rembg = async (params) => {
         WORKFLOW_REMBG["9"].inputs.image = params.image;
-        const data = { prompt: WORKFLOW_REMBG, client_id: "1122" };
+        const data = { prompt: WORKFLOW_REMBG, client_id: CLIENT_ID };
+
+        const response = await fetch(`${baseURL}/prompt`, {
+            method: "POST",
+            cache: "no-cache",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+        return response.json();
+    };
+
+    const queuePrompt_upscale = async (params) => {
+        WORKFLOW_UPSCALE["241"].inputs.image = params.image;
+        const data = { prompt: WORKFLOW_UPSCALE, client_id: CLIENT_ID };
 
         const response = await fetch(`${baseURL}/prompt`, {
             method: "POST",
@@ -73,7 +89,12 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
 
     return (
         <DataContext.Provider
-            value={{ fetchCheckpoints, queuePrompt, queuePrompt_rembg }}
+            value={{
+                fetchCheckpoints,
+                queuePrompt,
+                queuePrompt_rembg,
+                queuePrompt_upscale,
+            }}
         >
             {children}
         </DataContext.Provider>
