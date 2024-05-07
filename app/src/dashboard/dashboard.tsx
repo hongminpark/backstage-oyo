@@ -68,21 +68,20 @@ const Dashboard = () => {
 
     const [images, setImages] = useState<string[] | null>([]);
     const [tempImages, setTempImages] = useState<string[] | null>([
-        "http://121.67.246.191:8890/view?filename=detailed__00144_.png&type=output&rand=0.9932219956795625",
-        "http://121.67.246.191:8890/view?filename=detailed__00145_.png&type=output&rand=0.9932219956795625",
-        "http://121.67.246.191:8890/view?filename=detailed__00146_.png&type=output&rand=0.9932219956795625",
-        "http://121.67.246.191:8890/view?filename=detailed__00147_.png&type=output&rand=0.9932219956795625",
+        "detailed__00144_.png",
+        "detailed__00145_.png",
+        "detailed__00146_.png",
+        "detailed__00147_.png",
     ]);
     const [inProgress, setInProgress] = useState(false);
     const [progress, setProgress] = useState(0);
     const [prompt, setPrompt] = useState("Imagine your photo");
+    const [detailPromptId, setDetailPromptId] = useState(null);
 
     // FIXME: image variable format 통일
     const [selectedBaseImage, setSelectedBaseImage] = useState();
     const [selectedFaceImage, setSelectedFaceImage] = useState();
-    const [selectedImage, setSelectedImage] = useState(
-        "http://121.67.246.191:8890/view?filename=detailed__00144_.png&type=output&rand=0.9932219956795625"
-    );
+    const [selectedImage, setSelectedImage] = useState("detailed__00144_.png");
 
     const toggleBaseImageSelection = (img) => {
         if (selectedBaseImage === img) {
@@ -105,10 +104,13 @@ const Dashboard = () => {
     useEffect(() => {
         updateCheckpoint();
         Subscribe("dashboard", (event) => {
+            // SAMPLE
+            // {"type":"executed","data":{"node":"8","output":{"images":[{"filename":"ComfyUI_01158_.png","subfolder":"","type":"output"}]},"prompt_id":"8fd14544-0beb-4b75-96ca-099b2a9ba22e"}}
             const message = JSON.parse(event.data);
-            // TODO - workflow 구분 필요
             if (message.type === "crystools.monitor") return;
             if (message.type === WS_MESSAGE_TYPE_EXECUTED) {
+                console.log(message.data.prompt_id);
+                // TODO - prompt_id chceck
                 setRand((prev) => Math.random());
                 setImages((prevImages) => [
                     ...message.data.output.images
@@ -116,6 +118,11 @@ const Dashboard = () => {
                         .map((img) => img.filename),
                     ...prevImages,
                 ]);
+                console.log(detailPromptId, message.data.prompt_id);
+                if (detailPromptId === message.data.prompt_id) {
+                    setSelectedImage(message.data.output.images[0].filename);
+                    setDetailPromptId(null);
+                }
                 setInProgress((prev) => false);
                 setProgress((prev) => 0);
             } else if (message.type === WS_MESSAGE_TYPE_PROGRESS) {
@@ -127,7 +134,7 @@ const Dashboard = () => {
         return () => {
             UnSubscribe("dashboard");
         };
-    }, []);
+    }, [detailPromptId]);
 
     function updateCheckpoint() {
         fetchCheckpoints().then((checkpoints) => {
@@ -194,10 +201,12 @@ const Dashboard = () => {
         }
 
         //@ts-ignore
-        const encodedImage = await convertUrlToBase64(selectedImage);
+        const imageUrl = `${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`;
+        const encodedImage = await convertUrlToBase64(imageUrl);
         queuePrompt_rembg({
             image: encodedImage,
         }).then((res) => {
+            setDetailPromptId(res.prompt_id);
             setInProgress(true);
         });
     };
@@ -220,7 +229,7 @@ const Dashboard = () => {
                                     </button>
                                     <div className="flex flex-col gap-4 w-full justify-center items-center">
                                         <img
-                                            src={selectedImage}
+                                            src={`${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`}
                                             className="min-w-[512px] max-w-[1024px] w-1/2 object-cover aspect-1"
                                         />
                                         <div
@@ -259,7 +268,7 @@ const Dashboard = () => {
                                                         className="w-full object-cover aspect-1 hover:cursor-pointer"
                                                         onClick={() =>
                                                             setSelectedImage(
-                                                                `${baseURL}/view?filename=${image}&type=output&rand=${rand}`
+                                                                image
                                                             )
                                                         }
                                                     />
@@ -269,7 +278,7 @@ const Dashboard = () => {
                                             tempImages.map((image, index) => (
                                                 <div className="border border-transparent hover:border hover:border-black ">
                                                     <img
-                                                        src={image}
+                                                        src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
                                                         className="w-full aspect-[1/1] object-cover hover:cursor-pointer"
                                                         onClick={() =>
                                                             setSelectedImage(

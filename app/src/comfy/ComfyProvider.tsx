@@ -46,13 +46,14 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
 
         const response = await fetch(`${baseURL}/prompt`, {
             method: "POST",
-            mode: "no-cors",
+            // mode: "no-cors",
             cache: "no-cache",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(data),
         });
+        return response.json();
     };
 
     const queuePrompt_rembg = async (params) => {
@@ -61,13 +62,13 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
 
         const response = await fetch(`${baseURL}/prompt`, {
             method: "POST",
-            mode: "no-cors",
             cache: "no-cache",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(data),
         });
+        return response.json();
     };
 
     return (
