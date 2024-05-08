@@ -13,6 +13,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "../components/ui/accordion";
+import DragAndDrop from "../components/ui/DragAndDrop";
 import Layout from "../components/ui/Layout";
 import {
     ResizableHandle,
@@ -22,7 +23,6 @@ import {
 
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
-
 const baseImages = [
     {
         src: `${process.env.PUBLIC_URL}/demo/base01.jpeg`,
@@ -72,11 +72,13 @@ const Dashboard = () => {
     );
 
     const [images, setImages] = useState<string[] | null>([]);
+    // `${baseURL}/view?filename=${image}&type=output&rand=${rand}`
+
     const [tempImages, setTempImages] = useState<string[] | null>([
-        "detailed__00144_.png",
-        "detailed__00145_.png",
-        "detailed__00146_.png",
-        "detailed__00147_.png",
+        `${baseURL}/view?filename=detailed__00144_.png&type=output&rand=${rand}`,
+        `${baseURL}/view?filename=detailed__00145_.png&type=output&rand=${rand}`,
+        `${baseURL}/view?filename=detailed__00146_.png&type=output&rand=${rand}`,
+        `${baseURL}/view?filename=detailed__00147_.png&type=output&rand=${rand}`,
     ]);
     const [inProgress, setInProgress] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -86,7 +88,10 @@ const Dashboard = () => {
     // FIXME: image variable format 통일
     const [selectedBaseImage, setSelectedBaseImage] = useState();
     const [selectedFaceImage, setSelectedFaceImage] = useState();
-    const [selectedImage, setSelectedImage] = useState("detailed__00144_.png");
+    const [uploadedBaseImage, setUploadedBaseImage] = useState();
+    const [uploadedFaceImage, setUploadedFaceImage] = useState();
+    // const [selectedImage, setSelectedImage] = useState("detailed__00144_.png");
+    const [selectedImage, setSelectedImage] = useState("");
 
     const toggleBaseImageSelection = (img) => {
         if (selectedBaseImage === img) {
@@ -120,12 +125,17 @@ const Dashboard = () => {
                 setImages((prevImages) => [
                     ...message.data.output.images
                         .slice(0, 4)
-                        .map((img) => img.filename),
+                        .map(
+                            (img) =>
+                                `${baseURL}/view?filename=${img.filename}&type=output&rand=${rand}`
+                        ),
                     ...prevImages,
                 ]);
                 console.log(detailPromptId, message.data.prompt_id);
                 if (detailPromptId === message.data.prompt_id) {
-                    setSelectedImage(message.data.output.images[0].filename);
+                    setSelectedImage(
+                        `${baseURL}/view?filename=${message.data.output.images[0].filename}&type=output&rand=${rand}`
+                    );
                     setDetailPromptId(null);
                 }
                 setInProgress((prev) => false);
@@ -206,8 +216,8 @@ const Dashboard = () => {
         }
 
         //@ts-ignore
-        const imageUrl = `${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`;
-        const encodedImage = await convertUrlToBase64(imageUrl);
+        // const imageUrl = `${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`;
+        const encodedImage = await convertUrlToBase64(selectedImage);
         queuePrompt_rembg({
             image: encodedImage,
         }).then((res) => {
@@ -229,8 +239,8 @@ const Dashboard = () => {
         }
 
         //@ts-ignore
-        const imageUrl = `${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`;
-        const encodedImage = await convertUrlToBase64(imageUrl);
+        // const imageUrl = `${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`;
+        const encodedImage = await convertUrlToBase64(selectedImage);
         queuePrompt_upscale({
             image: encodedImage,
         }).then((res) => {
@@ -251,9 +261,9 @@ const Dashboard = () => {
             return;
         }
 
-        const imageUrl = `${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`;
+        // const imageUrl = `${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`;
         const link = document.createElement("a");
-        link.href = imageUrl;
+        link.href = selectedImage;
         link.download = selectedImage;
         document.body.appendChild(link);
         link.click();
@@ -278,7 +288,7 @@ const Dashboard = () => {
                                     </button>
                                     <div className="flex flex-col gap-4 w-full justify-center items-center">
                                         <img
-                                            src={`${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`}
+                                            src={selectedImage}
                                             className="min-w-[512px] max-w-[1024px] w-1/2 object-cover aspect-1"
                                         />
                                         <div
@@ -325,7 +335,7 @@ const Dashboard = () => {
                                                 <div className="border border-transparent hover:border hover:border-black ">
                                                     <img
                                                         key={index}
-                                                        src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
+                                                        src={image}
                                                         className="w-full object-cover aspect-1 hover:cursor-pointer"
                                                         onClick={() =>
                                                             setSelectedImage(
@@ -339,7 +349,7 @@ const Dashboard = () => {
                                             tempImages.map((image, index) => (
                                                 <div className="border border-transparent hover:border hover:border-black ">
                                                     <img
-                                                        src={`${baseURL}/view?filename=${image}&type=output&rand=${rand}`}
+                                                        src={image}
                                                         className="w-full aspect-[1/1] object-cover hover:cursor-pointer"
                                                         onClick={() =>
                                                             setSelectedImage(
@@ -378,7 +388,34 @@ const Dashboard = () => {
                                                                 overall shape of
                                                                 pose, style.
                                                             </div>
+                                                            {/* TODO - baseImage 리스트에 추가 */}
+                                                            {/* TODO - onDrop -> file을 */}
+                                                            <DragAndDrop
+                                                                setImage={
+                                                                    setUploadedBaseImage
+                                                                }
+                                                                message={
+                                                                    "Upload your own image."
+                                                                }
+                                                            />
                                                             <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide">
+                                                                {uploadedBaseImage && (
+                                                                    <div
+                                                                        className={`flex-none h-[172px] aspect-[1/1] relative hover:border hover:border-black hover:cursor-pointer overflow-hidden}`}
+                                                                        onClick={() =>
+                                                                            toggleBaseImageSelection(
+                                                                                uploadedBaseImage
+                                                                            )
+                                                                        }
+                                                                    >
+                                                                        <img
+                                                                            src={
+                                                                                uploadedBaseImage
+                                                                            }
+                                                                            className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 ease-in-out"
+                                                                        />
+                                                                    </div>
+                                                                )}
                                                                 {baseImages.map(
                                                                     (
                                                                         image,
@@ -424,6 +461,14 @@ const Dashboard = () => {
                                                     </AccordionTrigger>
                                                     <AccordionContent>
                                                         <div className="h-full px-4">
+                                                            <DragAndDrop
+                                                                setImage={
+                                                                    setUploadedBaseImage
+                                                                }
+                                                                message={
+                                                                    "Upload your own image."
+                                                                }
+                                                            />
                                                             <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide">
                                                                 {faceImages.map(
                                                                     (
