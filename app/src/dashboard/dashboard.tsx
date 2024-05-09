@@ -23,35 +23,6 @@ import {
 
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
-const baseImages = [
-    {
-        src: `${process.env.PUBLIC_URL}/demo/base01.jpeg`,
-        desc: "celine fashion model, female, portrait, short straight blonde hair, grey eyes, wearing white satin top, studio lighting, white background",
-    },
-    {
-        src: `${process.env.PUBLIC_URL}/demo/base02.jpeg`,
-        desc: "prada fashion model, korean female, portrait, long black hair, wearing black satin tank top, studio lighting, white color background",
-    },
-];
-
-const faceImages = [
-    {
-        src: `${process.env.PUBLIC_URL}/demo/face_main01.png`,
-        desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
-    },
-    {
-        src: `${process.env.PUBLIC_URL}/demo/face_main02.png`,
-        desc: "straight black hair, minimalist makeup, serene expression, soft features, even skin tone",
-    },
-    {
-        src: `${process.env.PUBLIC_URL}/demo/face_main03.png`,
-        desc: "Caucasian, blonde straight hair, light makeup, calm expression, clear skin, subtle lips",
-    },
-    {
-        src: `${process.env.PUBLIC_URL}/demo/face_main04.png`,
-        desc: "Caucasian, blonde short hair, minimal makeup, neutral expression, clear skin, defined cheekbones",
-    },
-];
 
 const Dashboard = () => {
     const toast = useToast();
@@ -59,7 +30,35 @@ const Dashboard = () => {
         process.env.NODE_ENV === "development"
             ? `http://${COMFYUI_HOST}:${COMFYUI_PORT}`
             : ``;
+    const [baseImages, setBaseImages] = useState([
+        {
+            src: `${process.env.PUBLIC_URL}/demo/base01.jpeg`,
+            desc: "celine fashion model, female, portrait, short straight blonde hair, grey eyes, wearing white satin top, studio lighting, white background",
+        },
+        {
+            src: `${process.env.PUBLIC_URL}/demo/base02.jpeg`,
+            desc: "prada fashion model, korean female, portrait, long black hair, wearing black satin tank top, studio lighting, white color background",
+        },
+    ]);
 
+    const [faceImages, setFaceImages] = useState([
+        {
+            src: `${process.env.PUBLIC_URL}/demo/face_main01.png`,
+            desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
+        },
+        {
+            src: `${process.env.PUBLIC_URL}/demo/face_main02.png`,
+            desc: "straight black hair, minimalist makeup, serene expression, soft features, even skin tone",
+        },
+        {
+            src: `${process.env.PUBLIC_URL}/demo/face_main03.png`,
+            desc: "Caucasian, blonde straight hair, light makeup, calm expression, clear skin, subtle lips",
+        },
+        {
+            src: `${process.env.PUBLIC_URL}/demo/face_main04.png`,
+            desc: "Caucasian, blonde short hair, minimal makeup, neutral expression, clear skin, defined cheekbones",
+        },
+    ]);
     const {
         queuePrompt,
         fetchCheckpoints,
@@ -388,34 +387,29 @@ const Dashboard = () => {
                                                                 overall shape of
                                                                 pose, style.
                                                             </div>
-                                                            {/* TODO - baseImage 리스트에 추가 */}
-                                                            {/* TODO - onDrop -> file을 */}
                                                             <DragAndDrop
-                                                                setImage={
-                                                                    setUploadedBaseImage
-                                                                }
+                                                                addBaseImage={(
+                                                                    img
+                                                                ) => {
+                                                                    console.log(
+                                                                        img
+                                                                    );
+                                                                    setBaseImages(
+                                                                        [
+                                                                            Object.assign(
+                                                                                {
+                                                                                    src: img,
+                                                                                }
+                                                                            ),
+                                                                            ...baseImages,
+                                                                        ]
+                                                                    );
+                                                                }}
                                                                 message={
                                                                     "Upload your own image."
                                                                 }
                                                             />
                                                             <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide">
-                                                                {uploadedBaseImage && (
-                                                                    <div
-                                                                        className={`flex-none h-[172px] aspect-[1/1] relative hover:border hover:border-black hover:cursor-pointer overflow-hidden}`}
-                                                                        onClick={() =>
-                                                                            toggleBaseImageSelection(
-                                                                                uploadedBaseImage
-                                                                            )
-                                                                        }
-                                                                    >
-                                                                        <img
-                                                                            src={
-                                                                                uploadedBaseImage
-                                                                            }
-                                                                            className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 ease-in-out"
-                                                                        />
-                                                                    </div>
-                                                                )}
                                                                 {baseImages.map(
                                                                     (
                                                                         image,
@@ -462,9 +456,23 @@ const Dashboard = () => {
                                                     <AccordionContent>
                                                         <div className="h-full px-4">
                                                             <DragAndDrop
-                                                                setImage={
-                                                                    setUploadedBaseImage
-                                                                }
+                                                                addBaseImage={(
+                                                                    img
+                                                                ) => {
+                                                                    console.log(
+                                                                        img
+                                                                    );
+                                                                    setFaceImages(
+                                                                        [
+                                                                            Object.assign(
+                                                                                {
+                                                                                    src: img,
+                                                                                }
+                                                                            ),
+                                                                            ...faceImages,
+                                                                        ]
+                                                                    );
+                                                                }}
                                                                 message={
                                                                     "Upload your own image."
                                                                 }

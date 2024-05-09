@@ -1,10 +1,10 @@
 import { useDropzone } from "react-dropzone";
 
 const DragAndDrop = ({
-    setImage: setImage,
+    addBaseImage: addBaseImage,
     message = "Upload your own image",
 }: {
-    setImage: Function;
+    addBaseImage: Function;
     message: string;
 }) => {
     const keyColor = "#AAAAAA";
@@ -14,7 +14,7 @@ const DragAndDrop = ({
             alert("Please upload file under 3MB!");
             return;
         }
-        setImage(URL.createObjectURL(file));
+        addBaseImage(URL.createObjectURL(file));
     };
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
