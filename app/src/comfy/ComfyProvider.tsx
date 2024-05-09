@@ -1,7 +1,11 @@
 import axios from "axios";
 import React, { createContext, ReactNode, useContext, useEffect } from "react";
 import { CLIENT_ID, GetWebSocket, Root } from "./api";
-import { WORKFLOW_BASE, WORKFLOW_REMBG, WORKFLOW_UPSCALE } from "./workflow";
+import {
+    WORKFLOW_BASE_FACE,
+    WORKFLOW_REMBG,
+    WORKFLOW_UPSCALE,
+} from "./workflow";
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
 
@@ -40,11 +44,25 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
     }, []);
 
     const queuePrompt = async (params) => {
-        WORKFLOW_BASE["3"].inputs.seed = params.seed;
-        WORKFLOW_BASE["169"].inputs.image = params.baseImage;
-        WORKFLOW_BASE["6"].inputs.text = params.positivePrompt;
-        const data = { prompt: WORKFLOW_BASE, client_id: CLIENT_ID };
+        const {
+            seed,
+            baseImage,
+            faceImage,
+            faceTotalWeight,
+            face1Weight,
+            positivePrompt,
+        } = params;
+        WORKFLOW_BASE_FACE["3"].inputs.seed = seed;
+        WORKFLOW_BASE_FACE["169"].inputs.image = baseImage;
+        WORKFLOW_BASE_FACE["192"].inputs.image = faceImage
+            ? faceImage
+            : baseImage; // FIXME: set empty base64 string
+        WORKFLOW_BASE_FACE["176"].inputs.weight = face1Weight;
+        WORKFLOW_BASE_FACE["180"].inputs.weight = faceTotalWeight;
+        WORKFLOW_BASE_FACE["6"].inputs.text = positivePrompt;
+        console.log(WORKFLOW_BASE_FACE);
 
+        const data = { prompt: WORKFLOW_BASE_FACE, client_id: CLIENT_ID };
         const response = await fetch(`${baseURL}/prompt`, {
             method: "POST",
             // mode: "no-cors",

@@ -43,20 +43,40 @@ const Dashboard = () => {
 
     const [faceImages, setFaceImages] = useState([
         {
-            src: `${process.env.PUBLIC_URL}/demo/face_main01.png`,
+            src: `${process.env.PUBLIC_URL}/demo/face/01.png`,
             desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
         },
         {
-            src: `${process.env.PUBLIC_URL}/demo/face_main02.png`,
-            desc: "straight black hair, minimalist makeup, serene expression, soft features, even skin tone",
+            src: `${process.env.PUBLIC_URL}/demo/face/02.png`,
+            desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
         },
         {
-            src: `${process.env.PUBLIC_URL}/demo/face_main03.png`,
-            desc: "Caucasian, blonde straight hair, light makeup, calm expression, clear skin, subtle lips",
+            src: `${process.env.PUBLIC_URL}/demo/face/03.png`,
+            desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
         },
         {
-            src: `${process.env.PUBLIC_URL}/demo/face_main04.png`,
-            desc: "Caucasian, blonde short hair, minimal makeup, neutral expression, clear skin, defined cheekbones",
+            src: `${process.env.PUBLIC_URL}/demo/face/04.png`,
+            desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
+        },
+        {
+            src: `${process.env.PUBLIC_URL}/demo/face/05.png`,
+            desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
+        },
+        {
+            src: `${process.env.PUBLIC_URL}/demo/face/06.png`,
+            desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
+        },
+        {
+            src: `${process.env.PUBLIC_URL}/demo/face/07.png`,
+            desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
+        },
+        {
+            src: `${process.env.PUBLIC_URL}/demo/face/08.png`,
+            desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
+        },
+        {
+            src: `${process.env.PUBLIC_URL}/demo/face/09.png`,
+            desc: "East Asian descent, straight black hair, subtle makeup, neutral expression, sharp eyebrows, smooth skin",
         },
     ]);
     const {
@@ -189,11 +209,20 @@ const Dashboard = () => {
             return;
         }
 
-        //@ts-ignore
-        const encodedImage = await convertUrlToBase64(selectedBaseImage.src);
+        const encodedBaseImage = await convertUrlToBase64(
+            //@ts-ignore
+            selectedBaseImage.src
+        );
+        const encodedFaceImage = selectedFaceImage
+            ? //@ts-ignore
+              await convertUrlToBase64(selectedFaceImage.src)
+            : null;
         queuePrompt({
             seed,
-            baseImage: encodedImage,
+            baseImage: encodedBaseImage,
+            faceImage: encodedFaceImage,
+            faceTotalWeight: selectedFaceImage ? 0.4 : 0,
+            face1Weight: selectedFaceImage ? 0.7 : 0,
             positivePrompt: prompt,
         }).then((res) => {
             setInProgress(true);
@@ -317,7 +346,7 @@ const Dashboard = () => {
                     <ResizablePanel defaultSize={selectedImage ? 15 : 100}>
                         <ResizablePanelGroup direction="horizontal">
                             <ResizablePanel>
-                                <div className="overflow-y-auto flex-nowrap h-full">
+                                <div className="overflow-y-auto flex-nowrap h-full ">
                                     {inProgress && (
                                         <div className="p-4 w-full aspect-[1/1] flex flex-col justify-center">
                                             <Progress
@@ -380,7 +409,7 @@ const Dashboard = () => {
                                                         <div>1. Base Style</div>
                                                     </AccordionTrigger>
                                                     <AccordionContent>
-                                                        <div className="h-full px-4">
+                                                        <div className="flex flex-col px-4 gap-2 h-full">
                                                             <div className="text-2xs">
                                                                 Select base
                                                                 image for
@@ -409,7 +438,7 @@ const Dashboard = () => {
                                                                     "Upload your own image."
                                                                 }
                                                             />
-                                                            <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide">
+                                                            <div className="flex flex-row gap-1 overflow-x-auto">
                                                                 {baseImages.map(
                                                                     (
                                                                         image,
@@ -454,7 +483,7 @@ const Dashboard = () => {
                                                         (optional)
                                                     </AccordionTrigger>
                                                     <AccordionContent>
-                                                        <div className="h-full px-4">
+                                                        <div className="flex flex-col px-4 gap-2 h-full">
                                                             <DragAndDrop
                                                                 addBaseImage={(
                                                                     img
@@ -477,7 +506,7 @@ const Dashboard = () => {
                                                                     "Upload your own image."
                                                                 }
                                                             />
-                                                            <div className="flex flex-row gap-1 overflow-x-auto scrollbar-hide">
+                                                            <div className="flex flex-row gap-1 overflow-x-auto">
                                                                 {faceImages.map(
                                                                     (
                                                                         image,
