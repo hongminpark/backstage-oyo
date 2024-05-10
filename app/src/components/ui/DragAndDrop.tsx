@@ -7,7 +7,6 @@ const DragAndDrop = ({
     addBaseImage: Function;
     message: string;
 }) => {
-    const keyColor = "#AAAAAA";
     const onDrop = (acceptedFiles: File[]) => {
         const file = acceptedFiles[0];
         if (file.size > 3 * 1024 * 1024) {
@@ -28,15 +27,13 @@ const DragAndDrop = ({
     return (
         <div
             {...getRootProps()}
-            className={`w-min-20 w-full border-dashed border text-[${keyColor}] ${
-                isDragActive ? "border-black" : `border-[${keyColor}]`
-            } focus:outline-none focus:ring-0 hover:cursor-pointer`}
+            className={`w-min-20 w-full border-dashed border focus:outline-none focus:ring-0 hover:cursor-pointer ${
+                isDragActive ? "border-black" : `border-black border-opacity-30`
+            }`}
         >
             <input {...getInputProps()} />
-            <p className="p-4 text-2xs text-center font-normal">
-                {message}
-                <br />
-                (Under 3MB)
+            <p className="p-2 text-2xs text-center font-normal">
+                {`${message} (Max: 3MB)`}
             </p>
         </div>
     );

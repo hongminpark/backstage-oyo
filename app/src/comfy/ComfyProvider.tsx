@@ -60,7 +60,6 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
         WORKFLOW_BASE_FACE["176"].inputs.weight = face1Weight;
         WORKFLOW_BASE_FACE["180"].inputs.weight = faceTotalWeight;
         WORKFLOW_BASE_FACE["6"].inputs.text = positivePrompt;
-        console.log(WORKFLOW_BASE_FACE);
 
         const data = { prompt: WORKFLOW_BASE_FACE, client_id: CLIENT_ID };
         const response = await fetch(`${baseURL}/prompt`, {

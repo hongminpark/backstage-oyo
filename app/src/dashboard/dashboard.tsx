@@ -1,4 +1,5 @@
 import { Progress, Textarea, useToast } from "@chakra-ui/react";
+import { ImgComparisonSlider } from "@img-comparison-slider/react";
 import { useEffect, useState } from "react";
 import {
     Subscribe,
@@ -13,6 +14,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "../components/ui/accordion";
+import { Dialog, DialogContent, DialogTrigger } from "../components/ui/dialog";
 import DragAndDrop from "../components/ui/DragAndDrop";
 import Layout from "../components/ui/Layout";
 import {
@@ -90,27 +92,19 @@ const Dashboard = () => {
         Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
     );
 
-    const [images, setImages] = useState<string[] | null>([]);
-    // `${baseURL}/view?filename=${image}&type=output&rand=${rand}`
-
-    const [tempImages, setTempImages] = useState<string[] | null>([
-        `${baseURL}/view?filename=detailed__00144_.png&type=output&rand=${rand}`,
-        `${baseURL}/view?filename=detailed__00145_.png&type=output&rand=${rand}`,
-        `${baseURL}/view?filename=detailed__00146_.png&type=output&rand=${rand}`,
-        `${baseURL}/view?filename=detailed__00147_.png&type=output&rand=${rand}`,
+    const [images, setImages] = useState<string[] | null>([
+        `${process.env.PUBLIC_URL}/demo/sample/01.jpeg`,
+        `${process.env.PUBLIC_URL}/demo/sample/02.jpeg`,
     ]);
     const [inProgress, setInProgress] = useState(false);
     const [progress, setProgress] = useState(0);
     const [prompt, setPrompt] = useState("Imagine your photo");
     const [detailPromptId, setDetailPromptId] = useState(null);
 
-    // FIXME: image variable format 통일
     const [selectedBaseImage, setSelectedBaseImage] = useState();
     const [selectedFaceImage, setSelectedFaceImage] = useState();
-    const [uploadedBaseImage, setUploadedBaseImage] = useState();
-    const [uploadedFaceImage, setUploadedFaceImage] = useState();
-    // const [selectedImage, setSelectedImage] = useState("detailed__00144_.png");
-    const [selectedImage, setSelectedImage] = useState("");
+    const [beforeImage, setBeforeImage] = useState<string | null>();
+    const [afterImage, setAfterImage] = useState<string | null>();
 
     const toggleBaseImageSelection = (img) => {
         if (selectedBaseImage === img) {
@@ -138,8 +132,6 @@ const Dashboard = () => {
             const message = JSON.parse(event.data);
             if (message.type === "crystools.monitor") return;
             if (message.type === WS_MESSAGE_TYPE_EXECUTED) {
-                console.log(message.data.prompt_id);
-                // TODO - prompt_id chceck
                 setRand((prev) => Math.random());
                 setImages((prevImages) => [
                     ...message.data.output.images
@@ -150,9 +142,8 @@ const Dashboard = () => {
                         ),
                     ...prevImages,
                 ]);
-                console.log(detailPromptId, message.data.prompt_id);
                 if (detailPromptId === message.data.prompt_id) {
-                    setSelectedImage(
+                    setAfterImage(
                         `${baseURL}/view?filename=${message.data.output.images[0].filename}&type=output&rand=${rand}`
                     );
                     setDetailPromptId(null);
@@ -232,7 +223,7 @@ const Dashboard = () => {
     };
 
     const removeBackground = async () => {
-        if (!selectedImage) {
+        if (!beforeImage) {
             toast({
                 title: "Remove Background error",
                 description: "Please select a base image.",
@@ -243,9 +234,7 @@ const Dashboard = () => {
             return;
         }
 
-        //@ts-ignore
-        // const imageUrl = `${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`;
-        const encodedImage = await convertUrlToBase64(selectedImage);
+        const encodedImage = await convertUrlToBase64(beforeImage);
         queuePrompt_rembg({
             image: encodedImage,
         }).then((res) => {
@@ -255,7 +244,7 @@ const Dashboard = () => {
     };
 
     const upscale = async () => {
-        if (!selectedImage) {
+        if (!beforeImage) {
             toast({
                 title: "Upscale error",
                 description: "Please select a base image.",
@@ -266,9 +255,7 @@ const Dashboard = () => {
             return;
         }
 
-        //@ts-ignore
-        // const imageUrl = `${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`;
-        const encodedImage = await convertUrlToBase64(selectedImage);
+        const encodedImage = await convertUrlToBase64(beforeImage);
         queuePrompt_upscale({
             image: encodedImage,
         }).then((res) => {
@@ -278,7 +265,7 @@ const Dashboard = () => {
     };
 
     const download = () => {
-        if (!selectedImage) {
+        if (!beforeImage) {
             toast({
                 title: "Download Error",
                 description: "No image selected to download.",
@@ -289,10 +276,9 @@ const Dashboard = () => {
             return;
         }
 
-        // const imageUrl = `${baseURL}/view?filename=${selectedImage}&type=output&rand=${rand}`;
         const link = document.createElement("a");
-        link.href = selectedImage;
-        link.download = selectedImage;
+        link.href = afterImage;
+        link.download = afterImage;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -300,354 +286,275 @@ const Dashboard = () => {
 
     return (
         <Layout>
-            <div className="w-screen h-screen flex overflow-hidden pt-16">
-                <ResizablePanelGroup direction="vertical">
-                    {selectedImage && (
-                        <>
-                            <ResizablePanel defaultSize={85}>
-                                <div className="flex w-full h-full justify-center items-center">
-                                    <button
-                                        onClick={() => setSelectedImage(null)}
-                                        className="absolute top-2 right-3 z-10 text-black items-center text-3xs"
-                                    >
-                                        <span className="hover:underline">
-                                            CLOSE
-                                        </span>
-                                    </button>
-                                    <div className="flex flex-col gap-4 w-full justify-center items-center">
-                                        <img
-                                            src={selectedImage}
-                                            className="min-w-[512px] max-w-[1024px] w-1/2 object-cover aspect-1"
-                                        />
-                                        <div
-                                            className="py-1 px-4 border bg-white text-black hover:bg-black hover:text-white border-black hover:cursor-pointer"
-                                            onClick={upscale}
-                                        >
-                                            Upscale
-                                        </div>
-                                        <div
-                                            className="py-1 px-4 border bg-white text-black hover:bg-black hover:text-white border-black hover:cursor-pointer"
-                                            onClick={removeBackground}
-                                        >
-                                            Remove Background
-                                        </div>
-                                        <div
-                                            className="py-1 px-4 border bg-white text-black hover:bg-black hover:text-white border-black hover:cursor-pointer"
-                                            onClick={download}
-                                        >
-                                            Download
-                                        </div>
-                                    </div>
+            <Dialog>
+                <DialogContent>
+                    <div className="flex w-full h-full justify-center items-center">
+                        <div className="flex flex-col gap-4 w-full justify-center items-center">
+                            {/* Add Image Comparar */}
+                            {afterImage ? (
+                                <ImgComparisonSlider>
+                                    <img slot="first" src={beforeImage} />
+                                    <img slot="second" src={afterImage} />
+                                </ImgComparisonSlider>
+                            ) : (
+                                <img
+                                    src={beforeImage}
+                                    className="w-full object-cover"
+                                />
+                            )}
+                            <div className="flex flex-col gap-1">
+                                <div
+                                    className="py-1 px-4 border bg-white text-black text-center hover:bg-black hover:text-white border-black hover:cursor-pointer"
+                                    onClick={upscale}
+                                >
+                                    Upscale
                                 </div>
-                            </ResizablePanel>
-                        </>
-                    )}
-                    <ResizableHandle className="bg-black" />
-                    <ResizablePanel defaultSize={selectedImage ? 15 : 100}>
-                        <ResizablePanelGroup direction="horizontal">
-                            <ResizablePanel>
-                                <div className="overflow-y-auto flex-nowrap h-full ">
-                                    {inProgress && (
-                                        <div className="p-4 w-full aspect-[1/1] flex flex-col justify-center">
-                                            <Progress
-                                                colorScheme="black"
-                                                isAnimated
-                                                height="1px"
-                                                value={progress}
-                                            />
-                                        </div>
-                                    )}
-                                    <div className="p-4 flex flex-col gap-4 items-center h-full">
-                                        {images?.length > 0 &&
-                                            images.map((image, index) => (
+                                <div
+                                    className="py-1 px-4 border bg-white text-black text-center hover:bg-black hover:text-white border-black hover:cursor-pointer"
+                                    onClick={removeBackground}
+                                >
+                                    Remove Background
+                                </div>
+                                <div
+                                    className="py-1 px-4 border bg-white text-black text-center hover:bg-black hover:text-white border-black hover:cursor-pointer"
+                                    onClick={download}
+                                >
+                                    Download
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+                <div className="w-screen h-screen flex overflow-hidden">
+                    <ResizablePanelGroup direction="horizontal">
+                        <ResizablePanel>
+                            <div className="overflow-y-auto flex-nowrap h-full ">
+                                {inProgress && (
+                                    <div className="p-4 w-full aspect-[1/1] flex flex-col justify-center">
+                                        <Progress
+                                            colorScheme="black"
+                                            isAnimated
+                                            height="1px"
+                                            value={progress}
+                                        />
+                                    </div>
+                                )}
+                                <div className="p-4 flex flex-col gap-4 items-center h-full">
+                                    {images?.length > 0 &&
+                                        images.map((image, index) => (
+                                            <DialogTrigger>
                                                 <div className="border border-transparent hover:border hover:border-black ">
                                                     <img
                                                         key={index}
                                                         src={image}
                                                         className="w-full object-cover aspect-1 hover:cursor-pointer"
-                                                        onClick={() =>
-                                                            setSelectedImage(
+                                                        onClick={() => {
+                                                            setBeforeImage(
                                                                 image
-                                                            )
-                                                        }
+                                                            );
+                                                            setAfterImage(null);
+                                                        }}
                                                     />
                                                 </div>
-                                            ))}
-                                        {tempImages?.length > 0 &&
-                                            tempImages.map((image, index) => (
-                                                <div className="border border-transparent hover:border hover:border-black ">
-                                                    <img
-                                                        src={image}
-                                                        className="w-full aspect-[1/1] object-cover hover:cursor-pointer"
-                                                        onClick={() =>
-                                                            setSelectedImage(
-                                                                image
-                                                            )
-                                                        }
-                                                    />
-                                                </div>
-                                            ))}
-                                    </div>
+                                            </DialogTrigger>
+                                        ))}
                                 </div>
-                            </ResizablePanel>
-                            <ResizableHandle className="bg-black" />
-                            <ResizablePanel>
-                                <ResizablePanelGroup direction="vertical">
-                                    <ResizablePanel defaultSize={70}>
-                                        <div className="flex h-full overflow-y-auto">
-                                            <Accordion
-                                                type="multiple"
-                                                // collapsible
-                                                className="w-full"
-                                                defaultValue={[
-                                                    "item-1",
-                                                    "item-3",
-                                                ]}
-                                            >
-                                                <AccordionItem value="item-1">
-                                                    <AccordionTrigger className="text-2xs px-4 py-2">
-                                                        <div>1. Base Style</div>
-                                                    </AccordionTrigger>
-                                                    <AccordionContent>
-                                                        <div className="flex flex-col px-4 gap-2 h-full">
-                                                            <div className="text-2xs">
-                                                                Select base
-                                                                image for
-                                                                overall shape of
-                                                                pose, style.
-                                                            </div>
-                                                            <DragAndDrop
-                                                                addBaseImage={(
-                                                                    img
-                                                                ) => {
-                                                                    console.log(
-                                                                        img
-                                                                    );
-                                                                    setBaseImages(
-                                                                        [
-                                                                            Object.assign(
-                                                                                {
-                                                                                    src: img,
-                                                                                }
-                                                                            ),
-                                                                            ...baseImages,
-                                                                        ]
-                                                                    );
-                                                                }}
-                                                                message={
-                                                                    "Upload your own image."
-                                                                }
-                                                            />
-                                                            <div className="flex flex-row gap-1 overflow-x-auto">
-                                                                {baseImages.map(
-                                                                    (
-                                                                        image,
-                                                                        index
-                                                                    ) => (
-                                                                        <div
-                                                                            key={
-                                                                                index
-                                                                            }
-                                                                            className={`flex-none h-[172px] aspect-[1/1] relative hover:border hover:border-black hover:cursor-pointer overflow-hidden ${
-                                                                                selectedBaseImage ===
-                                                                                image
-                                                                                    ? "border border-black"
-                                                                                    : "border border-transparent"
-                                                                            }`}
-                                                                            onClick={() =>
-                                                                                toggleBaseImageSelection(
-                                                                                    image
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <img
-                                                                                src={
-                                                                                    image.src
-                                                                                }
-                                                                                alt={`Main Model ${
-                                                                                    index +
-                                                                                    1
-                                                                                }`}
-                                                                                className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 ease-in-out"
-                                                                            />
-                                                                        </div>
-                                                                    )
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </AccordionContent>
-                                                </AccordionItem>
-                                                <AccordionItem value="item-2">
-                                                    <AccordionTrigger className="text-2xs px-4 py-2">
-                                                        2. Select Face
-                                                        (optional)
-                                                    </AccordionTrigger>
-                                                    <AccordionContent>
-                                                        <div className="flex flex-col px-4 gap-2 h-full">
-                                                            <DragAndDrop
-                                                                addBaseImage={(
-                                                                    img
-                                                                ) => {
-                                                                    console.log(
-                                                                        img
-                                                                    );
-                                                                    setFaceImages(
-                                                                        [
-                                                                            Object.assign(
-                                                                                {
-                                                                                    src: img,
-                                                                                }
-                                                                            ),
-                                                                            ...faceImages,
-                                                                        ]
-                                                                    );
-                                                                }}
-                                                                message={
-                                                                    "Upload your own image."
-                                                                }
-                                                            />
-                                                            <div className="flex flex-row gap-1 overflow-x-auto">
-                                                                {faceImages.map(
-                                                                    (
-                                                                        image,
-                                                                        index
-                                                                    ) => (
-                                                                        <div
-                                                                            key={
-                                                                                index
-                                                                            }
-                                                                            className={`flex-none w-[128px] aspect-[1/1] relative hover:cursor-pointer overflow-hidden ${
-                                                                                selectedFaceImage ===
-                                                                                image
-                                                                                    ? "border border-black"
-                                                                                    : "border border-transparent"
-                                                                            }`}
-                                                                            onClick={() =>
-                                                                                toggleFaceImageSelection(
-                                                                                    image
-                                                                                )
-                                                                            }
-                                                                        >
-                                                                            <img
-                                                                                src={
-                                                                                    image.src
-                                                                                }
-                                                                                alt={`Face Model ${
-                                                                                    index +
-                                                                                    1
-                                                                                }`}
-                                                                                className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 ease-in-out"
-                                                                            />
-                                                                        </div>
-                                                                    )
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </AccordionContent>
-                                                </AccordionItem>
-                                                <AccordionItem value="item-3">
-                                                    <AccordionTrigger className="text-2xs px-4 py-2">
-                                                        3. Describe
-                                                    </AccordionTrigger>
-                                                    <AccordionContent>
-                                                        <div className="h-full px-4">
-                                                            <div className="text-2xs">
-                                                                Enter keyword
-                                                                for image.
-                                                            </div>
-                                                            <Textarea
-                                                                value={prompt}
-                                                                onChange={(e) =>
-                                                                    setPrompt(
-                                                                        e.target
-                                                                            .value
-                                                                    )
-                                                                }
-                                                                placeholder="Type prompt"
-                                                                size="xs"
-                                                                resize="none"
-                                                                width="full"
-                                                                borderColor="black"
-                                                                focusBorderColor="black"
-                                                                fontSize="xs"
-                                                                borderRadius={0}
-                                                            />
-                                                            <div className="text-2xs">
-                                                                Recommended
-                                                                keyword : white
-                                                                background, film
-                                                                grain, studio
-                                                                lighting
-                                                            </div>
-                                                        </div>
-                                                    </AccordionContent>
-                                                </AccordionItem>
-                                            </Accordion>
-                                        </div>
-                                    </ResizablePanel>
-                                    <ResizableHandle className="bg-black" />
-                                    <ResizablePanel defaultSize={30}>
-                                        <div className="flex flex-col h-full p-4 gap-2">
-                                            <button
-                                                className={`relative border border-black px-2 py-1 w-max hover:cursor-pointer ${
-                                                    inProgress
-                                                        ? "bg-black text-white"
-                                                        : "bg-white text-black hover:bg-black hover:text-white"
-                                                } text-2xs flex items-center justify-center`}
-                                                onClick={generate}
-                                                disabled={inProgress}
-                                            >
-                                                Generate
-                                            </button>
-                                            <div className="flex flex-col gap-2">
-                                                <div className="flex flex-row gap-1 text-2xs">
-                                                    {selectedBaseImage && (
-                                                        <div className="flex-none w-[96px]">
-                                                            <div className="font-medium">
-                                                                Base
-                                                            </div>
-                                                            <img
-                                                                src={
-                                                                    //@ts-ignore
-                                                                    selectedBaseImage.src
-                                                                }
-                                                                className="w-full aspect-[1/1] object-cover"
-                                                            />
-                                                        </div>
-                                                    )}
-                                                    {selectedFaceImage && (
-                                                        <div className="flex-none w-[96px]">
-                                                            <div className="font-medium">
-                                                                Face
-                                                            </div>
-                                                            <img
-                                                                src={
-                                                                    //@ts-ignore
-                                                                    selectedFaceImage.src
-                                                                }
-                                                                className="w-full aspect-[1/1] object-cover"
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div>
-                                                    <div className="font-medium text-2xs">
-                                                        Prompt
-                                                    </div>
-                                                    <div className="text-2xs leading-tight">
-                                                        {selectedBaseImage &&
-                                                            prompt}
+                            </div>
+                        </ResizablePanel>
+                        <ResizableHandle className="bg-black" />
+                        <ResizablePanel>
+                            <ResizablePanelGroup direction="vertical">
+                                <div className="flex flex-col h-full overflow-y-auto">
+                                    <Accordion
+                                        type="multiple"
+                                        // collapsible
+                                        className="w-full"
+                                        defaultValue={["item-1", "item-3"]}
+                                    >
+                                        <AccordionItem value="item-1">
+                                            <AccordionTrigger className="text-lg px-4 py-2">
+                                                <div>1. POSE*</div>
+                                            </AccordionTrigger>
+                                            <AccordionContent>
+                                                <div className="flex flex-col px-4 gap-2 h-full">
+                                                    <DragAndDrop
+                                                        addBaseImage={(img) => {
+                                                            setBaseImages([
+                                                                Object.assign({
+                                                                    src: img,
+                                                                }),
+                                                                ...baseImages,
+                                                            ]);
+                                                        }}
+                                                        message={
+                                                            "Upload your own image."
+                                                        }
+                                                    />
+                                                    <div className="flex flex-row gap-1 overflow-x-auto">
+                                                        {baseImages.map(
+                                                            (image, index) => (
+                                                                <div
+                                                                    key={index}
+                                                                    className={`flex-none h-[172px] aspect-[1/1] relative hover:border hover:border-black hover:cursor-pointer overflow-hidden ${
+                                                                        selectedBaseImage ===
+                                                                        image
+                                                                            ? "border border-black"
+                                                                            : "border border-transparent"
+                                                                    }`}
+                                                                    onClick={() =>
+                                                                        toggleBaseImageSelection(
+                                                                            image
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <img
+                                                                        src={
+                                                                            image.src
+                                                                        }
+                                                                        alt={`Main Model ${
+                                                                            index +
+                                                                            1
+                                                                        }`}
+                                                                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 ease-in-out"
+                                                                    />
+                                                                </div>
+                                                            )
+                                                        )}
                                                     </div>
                                                 </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                        <AccordionItem value="item-2">
+                                            <AccordionTrigger className="text-lg px-4 py-2">
+                                                2. FACE
+                                            </AccordionTrigger>
+                                            <AccordionContent>
+                                                <div className="flex flex-col px-4 gap-2 h-full">
+                                                    <DragAndDrop
+                                                        addBaseImage={(img) => {
+                                                            setFaceImages([
+                                                                Object.assign({
+                                                                    src: img,
+                                                                }),
+                                                                ...faceImages,
+                                                            ]);
+                                                        }}
+                                                        message={
+                                                            "Upload your own image."
+                                                        }
+                                                    />
+                                                    <div className="flex flex-row gap-1 overflow-x-auto">
+                                                        {faceImages.map(
+                                                            (image, index) => (
+                                                                <div
+                                                                    key={index}
+                                                                    className={`flex-none w-[128px] aspect-[1/1] relative hover:cursor-pointer overflow-hidden ${
+                                                                        selectedFaceImage ===
+                                                                        image
+                                                                            ? "border border-black"
+                                                                            : "border border-transparent"
+                                                                    }`}
+                                                                    onClick={() =>
+                                                                        toggleFaceImageSelection(
+                                                                            image
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <img
+                                                                        src={
+                                                                            image.src
+                                                                        }
+                                                                        alt={`Face Model ${
+                                                                            index +
+                                                                            1
+                                                                        }`}
+                                                                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 ease-in-out"
+                                                                    />
+                                                                </div>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                        <AccordionItem value="item-3">
+                                            <AccordionTrigger className="text-lg px-4 py-2">
+                                                3. DESCRIPTION
+                                            </AccordionTrigger>
+                                            <AccordionContent>
+                                                <div className="h-full px-4">
+                                                    {/* gender, clothes, ethnicity, hairstyle,  */}
+                                                    <Textarea
+                                                        value={prompt}
+                                                        onChange={(e) =>
+                                                            setPrompt(
+                                                                e.target.value
+                                                            )
+                                                        }
+                                                        placeholder="Type prompt"
+                                                        size="xs"
+                                                        resize="none"
+                                                        width="full"
+                                                        borderColor="black"
+                                                        focusBorderColor="black"
+                                                        fontSize="xs"
+                                                        borderRadius={0}
+                                                    />
+                                                </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    </Accordion>
+                                    <div className="flex flex-col h-full p-4 gap-2">
+                                        <button
+                                            className={`relative border border-black p-2 w-full hover:cursor-pointer ${
+                                                inProgress
+                                                    ? "bg-black text-white"
+                                                    : "bg-white text-black hover:bg-black hover:text-white"
+                                            } text-2xs flex items-center justify-center`}
+                                            onClick={generate}
+                                            disabled={inProgress}
+                                        >
+                                            GENERATE
+                                        </button>
+                                        <div className="flex flex-col gap-2">
+                                            <div className="flex flex-row gap-1 text-2xs">
+                                                {selectedBaseImage && (
+                                                    <div className="flex-none w-[96px]">
+                                                        <div className="font-medium">
+                                                            Base
+                                                        </div>
+                                                        <img
+                                                            src={
+                                                                //@ts-ignore
+                                                                selectedBaseImage.src
+                                                            }
+                                                            className="w-full aspect-[1/1] object-cover"
+                                                        />
+                                                    </div>
+                                                )}
+                                                {selectedFaceImage && (
+                                                    <div className="flex-none w-[96px]">
+                                                        <div className="font-medium">
+                                                            Face
+                                                        </div>
+                                                        <img
+                                                            src={
+                                                                //@ts-ignore
+                                                                selectedFaceImage.src
+                                                            }
+                                                            className="w-full aspect-[1/1] object-cover"
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                    </ResizablePanel>
-                                </ResizablePanelGroup>
-                            </ResizablePanel>
-                        </ResizablePanelGroup>
-                    </ResizablePanel>
-                </ResizablePanelGroup>
-            </div>
+                                    </div>
+                                </div>
+                            </ResizablePanelGroup>
+                        </ResizablePanel>
+                    </ResizablePanelGroup>
+                </div>
+            </Dialog>
         </Layout>
     );
 };
