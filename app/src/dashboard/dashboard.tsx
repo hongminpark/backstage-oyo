@@ -5,6 +5,9 @@ import {
     Subscribe,
     UnSubscribe,
     WS_MESSAGE_TYPE_EXECUTED,
+    WS_MESSAGE_TYPE_EXECUTING,
+    WS_MESSAGE_TYPE_EXECUTION_CACHED,
+    WS_MESSAGE_TYPE_EXECUTION_START,
     WS_MESSAGE_TYPE_PROGRESS,
 } from "../comfy/api";
 import { useComfy } from "../comfy/ComfyProvider";
@@ -91,16 +94,16 @@ const Dashboard = () => {
     const [seed, setSeed] = useState(
         Math.round(Math.random() * Number.MAX_SAFE_INTEGER)
     );
-
     const [images, setImages] = useState<string[] | null>([
         `${process.env.PUBLIC_URL}/demo/sample/01.jpeg`,
         `${process.env.PUBLIC_URL}/demo/sample/02.jpeg`,
     ]);
     const [inProgress, setInProgress] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [progressMessage, setProgressMessage] = useState<string | null>();
+    const [estimatedTime, setEstimatedTime] = useState<string | null>();
     const [prompt, setPrompt] = useState("Imagine your photo");
     const [detailPromptId, setDetailPromptId] = useState(null);
-
     const [selectedBaseImage, setSelectedBaseImage] = useState();
     const [selectedFaceImage, setSelectedFaceImage] = useState();
     const [beforeImage, setBeforeImage] = useState<string | null>();
@@ -131,7 +134,40 @@ const Dashboard = () => {
             // {"type":"executed","data":{"node":"8","output":{"images":[{"filename":"ComfyUI_01158_.png","subfolder":"","type":"output"}]},"prompt_id":"8fd14544-0beb-4b75-96ca-099b2a9ba22e"}}
             const message = JSON.parse(event.data);
             if (message.type === "crystools.monitor") return;
-            if (message.type === WS_MESSAGE_TYPE_EXECUTED) {
+            console.log(message);
+            if (message.type === WS_MESSAGE_TYPE_EXECUTION_CACHED) {
+                if (message.data.nodes.length === 0) {
+                    setEstimatedTime("1 minute");
+                } else {
+                    setEstimatedTime("20 seconds");
+                }
+            }
+            if (message.type === WS_MESSAGE_TYPE_EXECUTION_START) {
+                setProgressMessage("Submitted.");
+                setProgress(10);
+            } else if (message.type === WS_MESSAGE_TYPE_EXECUTING) {
+                if (message.data.node === "4" || message.data.node === "65") {
+                    setProgressMessage("Loading Model...");
+                    setProgress(23);
+                } else if (message.data.node === "180") {
+                    setProgressMessage("Drawing face...");
+                    setProgress(34);
+                } else if (
+                    message.data.node === "8" ||
+                    message.data.node === "191"
+                ) {
+                    setProgressMessage("Almost done!");
+                    setProgress(34);
+                } else {
+                    setProgressMessage("Shaping.");
+                    setProgress(52);
+                }
+            } else if (message.type === WS_MESSAGE_TYPE_PROGRESS) {
+                setProgressMessage("Painting... Only 10seconds left.");
+                setProgress(
+                    Math.floor((message.data.value / message.data.max) * 100)
+                );
+            } else if (message.type === WS_MESSAGE_TYPE_EXECUTED) {
                 setRand((prev) => Math.random());
                 setImages((prevImages) => [
                     ...message.data.output.images
@@ -150,10 +186,6 @@ const Dashboard = () => {
                 }
                 setInProgress((prev) => false);
                 setProgress((prev) => 0);
-            } else if (message.type === WS_MESSAGE_TYPE_PROGRESS) {
-                setProgress(
-                    Math.floor((message.data.value / message.data.max) * 100)
-                );
             }
         });
         return () => {
@@ -330,13 +362,17 @@ const Dashboard = () => {
                         <ResizablePanel>
                             <div className="overflow-y-auto flex-nowrap h-full ">
                                 {inProgress && (
-                                    <div className="p-4 w-full aspect-[1/1] flex flex-col justify-center">
+                                    <div className="p-4 w-full aspect-[1/1] flex flex-col gap-2 justify-center">
                                         <Progress
                                             colorScheme="black"
                                             isAnimated
                                             height="1px"
                                             value={progress}
                                         />
+                                        <div className="text-center">
+                                            <p>{`Estimated time : ${estimatedTime}`}</p>
+                                            <p>{progressMessage}</p>
+                                        </div>
                                     </div>
                                 )}
                                 <div className="p-4 flex flex-col gap-4 items-center h-full">
