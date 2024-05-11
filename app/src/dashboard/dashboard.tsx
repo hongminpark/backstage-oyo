@@ -134,7 +134,6 @@ const Dashboard = () => {
             // {"type":"executed","data":{"node":"8","output":{"images":[{"filename":"ComfyUI_01158_.png","subfolder":"","type":"output"}]},"prompt_id":"8fd14544-0beb-4b75-96ca-099b2a9ba22e"}}
             const message = JSON.parse(event.data);
             if (message.type === "crystools.monitor") return;
-            console.log(message);
             if (message.type === WS_MESSAGE_TYPE_EXECUTION_CACHED) {
                 if (message.data.nodes.length === 0) {
                     setEstimatedTime("1 minute");
