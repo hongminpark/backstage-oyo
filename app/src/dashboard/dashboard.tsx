@@ -322,24 +322,41 @@ const Dashboard = () => {
                 <DialogContent>
                     <div className="flex w-full h-full justify-center items-center">
                         <div className="flex flex-col gap-4 w-full justify-center items-center">
-                            {/* Add Image Comparar */}
-                            {afterImage ? (
-                                <ImgComparisonSlider>
-                                    <img slot="first" src={beforeImage} />
-                                    <img slot="second" src={afterImage} />
-                                </ImgComparisonSlider>
-                            ) : (
-                                <img
-                                    src={beforeImage}
-                                    className="w-full object-cover"
-                                />
-                            )}
+                            <div className="relative">
+                                {afterImage ? (
+                                    <ImgComparisonSlider>
+                                        <img slot="first" src={beforeImage} />
+                                        <img slot="second" src={afterImage} />
+                                    </ImgComparisonSlider>
+                                ) : (
+                                    <img
+                                        src={beforeImage}
+                                        className={`w-full object-cover ${
+                                            inProgress
+                                                ? "blur-sm"
+                                                : "opacity-100"
+                                        }`}
+                                    />
+                                )}
+                                {inProgress && (
+                                    <div className="absolute inset-0 flex flex-col gap-2 justify-center items-center p-4">
+                                        <Progress
+                                            colorScheme="black"
+                                            isAnimated
+                                            height="1px"
+                                            value={progress}
+                                            width="100%"
+                                        />
+                                        <div>Estimated time : 1 minute</div>
+                                    </div>
+                                )}
+                            </div>
                             <div className="flex flex-col gap-1">
                                 <div
                                     className="py-1 px-4 border bg-white text-black text-center hover:bg-black hover:text-white border-black hover:cursor-pointer"
                                     onClick={upscale}
                                 >
-                                    Upscale
+                                    Convert High Resolution
                                 </div>
                                 <div
                                     className="py-1 px-4 border bg-white text-black text-center hover:bg-black hover:text-white border-black hover:cursor-pointer"
