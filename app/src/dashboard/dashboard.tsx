@@ -89,6 +89,7 @@ const Dashboard = () => {
         fetchCheckpoints,
         queuePrompt_rembg,
         queuePrompt_upscale,
+        queuePrompt_upscale_v2,
     } = useComfy();
     const [rand, setRand] = useState<number>(Math.random);
     const [seed, setSeed] = useState(
@@ -287,7 +288,7 @@ const Dashboard = () => {
         }
 
         const encodedImage = await convertUrlToBase64(beforeImage);
-        queuePrompt_upscale({
+        queuePrompt_upscale_v2({
             image: encodedImage,
         }).then((res) => {
             setDetailPromptId(res.prompt_id);

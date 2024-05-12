@@ -5,6 +5,7 @@ import {
     WORKFLOW_BASE_FACE,
     WORKFLOW_REMBG,
     WORKFLOW_UPSCALE,
+    WORKFLOW_UPSCALE_V2,
 } from "./workflow";
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
@@ -14,6 +15,7 @@ interface DataContextProps {
     queuePrompt: (params) => Promise<any>;
     queuePrompt_rembg: (params) => Promise<any>;
     queuePrompt_upscale: (params) => Promise<any>;
+    queuePrompt_upscale_v2: (params) => Promise<any>;
 }
 
 const DataContext = createContext<DataContextProps | undefined>(undefined);
@@ -104,6 +106,21 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
         return response.json();
     };
 
+    const queuePrompt_upscale_v2 = async (params) => {
+        WORKFLOW_UPSCALE_V2["192"].inputs.image = params.image;
+        const data = { prompt: WORKFLOW_UPSCALE_V2, client_id: CLIENT_ID };
+
+        const response = await fetch(`${baseURL}/prompt`, {
+            method: "POST",
+            cache: "no-cache",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(data),
+        });
+        return response.json();
+    };
+
     return (
         <DataContext.Provider
             value={{
@@ -111,6 +128,7 @@ export const ComfyProvider: React.FC<DataProviderProps> = ({ children }) => {
                 queuePrompt,
                 queuePrompt_rembg,
                 queuePrompt_upscale,
+                queuePrompt_upscale_v2,
             }}
         >
             {children}
