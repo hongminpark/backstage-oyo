@@ -1,12 +1,11 @@
 import axios from "axios";
 import React, { createContext, ReactNode, useContext, useEffect } from "react";
 import { CLIENT_ID, GetWebSocket, Root } from "./api";
-import {
-    WORKFLOW_BASE_FACE,
-    WORKFLOW_REMBG,
-    WORKFLOW_UPSCALE,
-    WORKFLOW_UPSCALE_V2,
-} from "./workflow";
+import { WORKFLOW_BASE_FACE } from "./workflow/base_face";
+import { WORKFLOW_REMBG } from "./workflow/rembg";
+import { WORKFLOW_UPSCALE } from "./workflow/upscale";
+import { WORKFLOW_UPSCALE_V2 } from "./workflow/upscale_v2";
+
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
 
