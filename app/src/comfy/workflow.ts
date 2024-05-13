@@ -1047,8 +1047,8 @@ export const WORKFLOW_UPSCALE_V2 = {
     "194": {
         inputs: {
             sharpen_radius: 1,
-            sigma: 0.5,
-            alpha: 0.5,
+            sigma: 0.25,
+            alpha: 0.25,
             image: ["192", 0],
         },
         class_type: "ImageSharpen",

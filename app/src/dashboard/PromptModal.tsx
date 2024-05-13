@@ -21,13 +21,6 @@ const PromptModal = ({ addImage, isGenerating, setIsGenerating }) => {
         "photorealistic",
     ]);
     const [isHiddenTagVisible, setIsHiddenTagVisible] = useState(false);
-
-    const [poseImage, setPoseImage] = useState();
-    const [keepFace, setKeepFace] = useState(false);
-    const [seed, setSeed] = useState(Math.floor(Math.random() * 4294967296));
-    const prompt_neg =
-        "embedding:easynegative, embedding:bad_prompt_version2-neg, embedding:ng_deepnegative_v1_75t, Earrings, Necklaces, Monochrome, nsfw, underwear, teeth, breast, nipples";
-
     const createPrompt = () => {
         let parts = [
             gender,
@@ -187,41 +180,10 @@ const PromptModal = ({ addImage, isGenerating, setIsGenerating }) => {
                     </div>
                 )}
             </div>
-
-            <div className="flex flex-row gap-2 justify-start items-center">
-                <div className="font-bold text-sm w-max">Keep face</div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                        type="checkbox"
-                        className="sr-only peer"
-                        checked={keepFace}
-                        onChange={() => setKeepFace(!keepFace)}
-                    />
-                    <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all  peer-checked:bg-black" />
-                </label>
-            </div>
-            <div className="flex flex-col gap-2 justify-start text-gray-400">
-                <div className="font-bold text-sm w-max">Reference Image</div>
-                <div className="font-bold text-sm w-max">Upscale</div>
-                <div className="font-bold text-sm w-max">Outpaint</div>
-            </div>
-            <div className="flex flex-col gap-2">
-                <button
-                    className="relative border border-black px-2 py-1 w-max hover:bg-black hover:text-white bg-white font-normal text-sm flex items-center justify-center"
-                    // onClick={callNextjsAPI}
-                >
-                    Generate
-                    {isGenerating && (
-                        <span className="absolute flex h-3 w-3 right-0 top-0 transform translate-x-1/2 -translate-y-1/2">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-500 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-black"></span>
-                        </span>
-                    )}
-                </button>
-            </div>
         </div>
     );
 };
+
 const DescriptionTag = ({ tagName, value, setValue, options }) => {
     const [isHovered, setIsHovered] = useState(false);
     const [isEditing, setIsEditing] = useState(false);

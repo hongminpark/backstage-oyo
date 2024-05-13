@@ -1,4 +1,4 @@
-import { Progress, Textarea, useToast } from "@chakra-ui/react";
+import { Progress, useToast } from "@chakra-ui/react";
 import { ImgComparisonSlider } from "@img-comparison-slider/react";
 import { useEffect, useState } from "react";
 import {
@@ -25,6 +25,13 @@ import {
     ResizablePanel,
     ResizablePanelGroup,
 } from "../components/ui/resizable";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "../components/ui/select";
 
 export const COMFYUI_HOST = "121.67.246.191";
 export const COMFYUI_PORT = "8890";
@@ -103,20 +110,23 @@ const Dashboard = () => {
     const [progress, setProgress] = useState(0);
     const [progressMessage, setProgressMessage] = useState<string | null>();
     const [estimatedTime, setEstimatedTime] = useState<string | null>();
-    const [prompt, setPrompt] = useState("Imagine your photo");
     const [detailPromptId, setDetailPromptId] = useState(null);
     const [selectedBaseImage, setSelectedBaseImage] = useState();
     const [selectedFaceImage, setSelectedFaceImage] = useState();
     const [beforeImage, setBeforeImage] = useState<string | null>();
     const [afterImage, setAfterImage] = useState<string | null>();
 
+    const [gender, setGender] = useState<string | null>();
+    const [ethnicity, setEthnicity] = useState<string | null>();
+    const [eyes, setEyes] = useState<string | null>();
+    const [hair, setHair] = useState<string | null>();
+    const [clothes, setClothes] = useState<string | null>();
+
     const toggleBaseImageSelection = (img) => {
         if (selectedBaseImage === img) {
             setSelectedBaseImage(null);
-            setPrompt(null);
         } else {
             setSelectedBaseImage(img);
-            setPrompt(img.desc);
         }
     };
 
@@ -231,6 +241,17 @@ const Dashboard = () => {
             });
             return;
         }
+
+        const prompt = [
+            gender,
+            ethnicity,
+            eyes,
+            hair,
+            clothes,
+            "white background, 4k, high resolution, studio lighting",
+        ]
+            .filter(Boolean)
+            .join(", ");
 
         const encodedBaseImage = await convertUrlToBase64(
             //@ts-ignore
@@ -535,9 +556,70 @@ const Dashboard = () => {
                                                 3. DESCRIPTION
                                             </AccordionTrigger>
                                             <AccordionContent>
-                                                <div className="h-full px-4">
-                                                    {/* gender, clothes, ethnicity, hairstyle,  */}
-                                                    <Textarea
+                                                <div className="w-full h-full px-4">
+                                                    <div className="flex flex-row flex-wrap gap-1">
+                                                        <CustomSelect
+                                                            selectValue="Gender"
+                                                            selectItems={[
+                                                                "Female",
+                                                                "Male",
+                                                            ]}
+                                                            onValueChange={
+                                                                setGender
+                                                            }
+                                                        />
+                                                        <CustomSelect
+                                                            selectValue="Ethnicity"
+                                                            selectItems={[
+                                                                "Caucasian",
+                                                                "African",
+                                                                "Asian",
+                                                                "Hispanic",
+                                                                "Middle Eastern",
+                                                            ]}
+                                                            onValueChange={
+                                                                setEthnicity
+                                                            }
+                                                        />
+                                                        <CustomSelect
+                                                            selectValue="Eyes"
+                                                            selectItems={[
+                                                                "blue eyes",
+                                                                "grey eyes",
+                                                                "black eyes",
+                                                                "brown eyes",
+                                                            ]}
+                                                            onValueChange={
+                                                                setEyes
+                                                            }
+                                                        />
+                                                        <CustomSelect
+                                                            selectValue="Hair"
+                                                            selectItems={[
+                                                                "long black hair",
+                                                                "short blonde hair",
+                                                                "curly brown hair",
+                                                                "wavy blue hair",
+                                                                "pink hair",
+                                                            ]}
+                                                            onValueChange={
+                                                                setHair
+                                                            }
+                                                        />
+                                                        <CustomSelect
+                                                            selectValue="Clothes"
+                                                            selectItems={[
+                                                                "black tank top",
+                                                                "pink fluffy top",
+                                                                "white minimal satin top",
+                                                                "denim t-shirt",
+                                                            ]}
+                                                            onValueChange={
+                                                                setClothes
+                                                            }
+                                                        />
+                                                    </div>
+                                                    {/* <Textarea
                                                         value={prompt}
                                                         onChange={(e) =>
                                                             setPrompt(
@@ -552,7 +634,7 @@ const Dashboard = () => {
                                                         focusBorderColor="black"
                                                         fontSize="xs"
                                                         borderRadius={0}
-                                                    />
+                                                    /> */}
                                                 </div>
                                             </AccordionContent>
                                         </AccordionItem>
@@ -609,6 +691,72 @@ const Dashboard = () => {
                 </div>
             </Dialog>
         </Layout>
+    );
+};
+
+const CustomSelect = ({ selectValue, selectItems, onValueChange }) => {
+    const [items, setItems] = useState(selectItems);
+    const [inputValue, setInputValue] = useState("");
+    const [selectedValue, setSelectedValue] = useState("");
+
+    const handleAddItem = () => {
+        if (inputValue && !items.includes(inputValue)) {
+            setItems((prevItems) => [...prevItems, inputValue]);
+            setInputValue("");
+        }
+    };
+
+    const handleClearSelection = () => {
+        setSelectedValue("");
+        onValueChange("");
+    };
+
+    const handleChange = (value) => {
+        setSelectedValue(value);
+        onValueChange(value);
+    };
+
+    return (
+        <div>
+            <Select onValueChange={handleChange} value={selectedValue}>
+                <SelectTrigger className="w-max">
+                    <SelectValue placeholder={selectValue} />
+                </SelectTrigger>
+                <SelectContent>
+                    {items.map((item) => (
+                        <div className="flex flex-row justify-between">
+                            <SelectItem
+                                key={item}
+                                value={item}
+                                className={`${
+                                    selectedValue === item ? "underline" : ""
+                                }`}
+                            >
+                                {item}
+                            </SelectItem>
+                            {selectedValue === item && (
+                                <button
+                                    onClick={handleClearSelection}
+                                    className="p-2 hover:cursor-pointer"
+                                >
+                                    x
+                                </button>
+                            )}
+                        </div>
+                    ))}
+                    <div className="flex p-2">
+                        <input
+                            type="text"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            placeholder="Add new item"
+                            className="flex-grow"
+                        />
+                        <button onClick={handleAddItem}>Add</button>
+                    </div>
+                </SelectContent>
+            </Select>
+        </div>
     );
 };
 
