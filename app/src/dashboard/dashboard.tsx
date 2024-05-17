@@ -1,6 +1,7 @@
 import { Progress, useToast } from "@chakra-ui/react";
 import { ImgComparisonSlider } from "@img-comparison-slider/react";
 import { useEffect, useState } from "react";
+import "react-medium-image-zoom/dist/styles.css";
 import {
     Subscribe,
     UnSubscribe,
@@ -353,8 +354,8 @@ const Dashboard = () => {
                 <DialogContent>
                     <div className="flex w-full h-full justify-center items-center">
                         <div className="flex flex-col gap-4 w-full justify-center items-center">
-                            <div className="relative">
-                                {true ? (
+                            <div className={`relative`}>
+                                {afterImage ? (
                                     <ImgComparisonSlider>
                                         <div slot="first" className="relative">
                                             <img
@@ -367,7 +368,7 @@ const Dashboard = () => {
                                         </div>
                                         <div slot="second" className="relative">
                                             <img
-                                                src={beforeImage}
+                                                src={afterImage}
                                                 className="w-full h-auto"
                                             />
                                             <div className="absolute top-3 right-2 w-full h-full flex justify-end">
