@@ -123,7 +123,7 @@ export const WORKFLOW_UPSCALE_V2 = {
     },
     "91": {
         inputs: {
-            filename_prefix: "ComfyUI",
+            filename_prefix: "backstage_upscaled_",
             images: ["70", 0],
         },
         class_type: "SaveImage",

@@ -139,7 +139,6 @@ const Dashboard = () => {
     };
 
     useEffect(() => {
-        updateCheckpoint();
         Subscribe("dashboard", (event) => {
             // SAMPLE
             // {"type":"executed","data":{"node":"8","output":{"images":[{"filename":"ComfyUI_01158_.png","subfolder":"","type":"output"}]},"prompt_id":"8fd14544-0beb-4b75-96ca-099b2a9ba22e"}}
@@ -202,12 +201,6 @@ const Dashboard = () => {
             UnSubscribe("dashboard");
         };
     }, [detailPromptId]);
-
-    function updateCheckpoint() {
-        fetchCheckpoints().then((checkpoints) => {
-            console.log("Fetch server status success.", checkpoints);
-        });
-    }
 
     const convertUrlToBase64 = async (imageUrl) => {
         try {
@@ -317,7 +310,7 @@ const Dashboard = () => {
         });
     };
 
-    const download = () => {
+    const download = async () => {
         if (!beforeImage) {
             toast({
                 title: "Download Error",
@@ -329,12 +322,29 @@ const Dashboard = () => {
             return;
         }
 
-        const link = document.createElement("a");
-        link.href = afterImage;
-        link.download = afterImage;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        const downloadImage = afterImage ? afterImage : beforeImage;
+        try {
+            const response = await fetch(downloadImage);
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = blobUrl;
+            link.download = `backstage_result.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(blobUrl);
+        } catch (error) {
+            console.error("Error downloading the image:", error);
+            toast({
+                title: "Download Error",
+                description: "Failed to download the image.",
+                status: "error",
+                duration: 2000,
+                isClosable: true,
+            });
+        }
     };
 
     return (
