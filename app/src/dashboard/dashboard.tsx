@@ -354,10 +354,26 @@ const Dashboard = () => {
                     <div className="flex w-full h-full justify-center items-center">
                         <div className="flex flex-col gap-4 w-full justify-center items-center">
                             <div className="relative">
-                                {afterImage ? (
+                                {true ? (
                                     <ImgComparisonSlider>
-                                        <img slot="first" src={beforeImage} />
-                                        <img slot="second" src={afterImage} />
+                                        <div slot="first" className="relative">
+                                            <img
+                                                src={beforeImage}
+                                                className="w-full h-auto"
+                                            />
+                                            <div className="absolute top-2 left-2 w-full flex items-center justify-start">
+                                                <span>BEFORE</span>
+                                            </div>
+                                        </div>
+                                        <div slot="second" className="relative">
+                                            <img
+                                                src={beforeImage}
+                                                className="w-full h-auto"
+                                            />
+                                            <div className="absolute top-3 right-2 w-full h-full flex justify-end">
+                                                <span>AFTER</span>
+                                            </div>
+                                        </div>
                                     </ImgComparisonSlider>
                                 ) : (
                                     <img
